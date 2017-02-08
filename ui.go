@@ -61,11 +61,10 @@ func (ui *UI) Layout(g *gocui.Gui) error {
 		return err
 	}
 
-	if v, err := ui.SetView(InfoView, 0, maxY-3, maxX-1, maxY-1); err != nil {
+	if _, err := ui.SetView(InfoView, 0, maxY-3, maxX-1, maxY-1); err != nil {
 		if err != gocui.ErrUnknownView {
 			return err
 		}
-		v.Write([]byte("Listening on port 8000"))
 	}
 
 	return nil

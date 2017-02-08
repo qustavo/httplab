@@ -30,11 +30,12 @@ func NewHandler(ui *httplab.UI) http.Handler {
 func main() {
 	ui, err := httplab.NewUI()
 	if err != nil {
-		panic(err)
+		log.Fatalln(err)
 	}
 
 	go func() {
 		http.Handle("/", NewHandler(ui))
+		ui.Display(httplab.InfoView, []byte("Listening on :8000"))
 		if err := http.ListenAndServe(":8000", nil); err != nil {
 			log.Fatalln(err)
 		}
