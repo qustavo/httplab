@@ -49,19 +49,21 @@ func NewUI() (*UI, error) {
 
 func (ui *UI) Layout(g *gocui.Gui) error {
 	maxX, maxY := g.Size()
+	splitX := NewSplit(maxX).Relative(70)
+	splitY := NewSplit(maxY).Fixed(maxY - 4)
 
-	if v, err := g.SetView(RequestView, 0, 0, int(0.7*float32(maxX))-1, maxY-1-3); err != nil {
+	if v, err := g.SetView(RequestView, 0, 0, splitX.Next(), splitY.Next()); err != nil {
 		if err != gocui.ErrUnknownView {
 			return err
 		}
 		v.Title = "Request"
 	}
 
-	if err := ui.setResponseView(int(0.7*float32(maxX)), 0, maxX-1, maxY-1-3); err != nil {
+	if err := ui.setResponseView(splitX.Current(), 0, maxX-1, splitY.Current()); err != nil {
 		return err
 	}
 
-	if _, err := ui.SetView(InfoView, 0, maxY-3, maxX-1, maxY-1); err != nil {
+	if _, err := ui.SetView(InfoView, 0, splitY.Current()+1, maxX-1, maxY-1); err != nil {
 		if err != gocui.ErrUnknownView {
 			return err
 		}
@@ -70,10 +72,9 @@ func (ui *UI) Layout(g *gocui.Gui) error {
 	return nil
 }
 
-// TODO: make geometry management less ugly (currentY)
 func (ui *UI) setResponseView(x0, y0, x1, y1 int) error {
-	currentY := y0
-	if v, err := ui.SetView(StatusView, x0, y0, x1, y0+2); err != nil {
+	split := NewSplit(y1).Fixed(2).Relative(40)
+	if v, err := ui.SetView(StatusView, x0, y0, x1, split.Next()); err != nil {
 		if err != gocui.ErrUnknownView {
 			return err
 		}
@@ -82,13 +83,9 @@ func (ui *UI) setResponseView(x0, y0, x1, y1 int) error {
 		v.Editable = true
 		v.Editor = gocui.EditorFunc(statusEditor)
 		fmt.Fprintf(v, "%d", ui.resp.Status)
-
-		_, y := v.Size()
-		currentY += y
 	}
 
-	currentY = int(0.4 * float32(y1-currentY))
-	if v, err := ui.SetView(HeadersView, x0, y0+3, x1, currentY); err != nil {
+	if v, err := ui.SetView(HeadersView, x0, split.Current()+1, x1, split.Next()); err != nil {
 		if err != gocui.ErrUnknownView {
 			return err
 		}
@@ -97,12 +94,9 @@ func (ui *UI) setResponseView(x0, y0, x1, y1 int) error {
 		for key, _ := range ui.resp.Headers {
 			fmt.Fprintf(v, "%s: %s\n", key, ui.resp.Headers.Get(key))
 		}
-
-		_, y := v.Size()
-		currentY += y
 	}
 
-	if v, err := ui.SetView(BodyView, x0, currentY+1, x1, y1); err != nil {
+	if v, err := ui.SetView(BodyView, x0, split.Current()+1, x1, y1); err != nil {
 		if err != gocui.ErrUnknownView {
 			return err
 		}
