@@ -3,8 +3,6 @@ package main
 import (
 	"log"
 	"net/http"
-	"net/http/httputil"
-	"strings"
 	"time"
 
 	"github.com/gchaincl/httplab"
@@ -12,14 +10,9 @@ import (
 
 func NewHandler(ui *httplab.UI) http.Handler {
 	fn := func(w http.ResponseWriter, req *http.Request) {
-		buf, err := httputil.DumpRequest(req, false)
-		if err != nil {
-			log.Fatalln(err)
-		}
-
 		ui.Display(
 			httplab.RequestView,
-			[]byte(strings.Replace(string(buf), "\r", "", -1)),
+			httplab.DumpRequest(req),
 		)
 
 		resp := ui.Response()
