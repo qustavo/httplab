@@ -3,6 +3,8 @@ package httplab
 import (
 	"fmt"
 	"net/http"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/jroimartin/gocui"
@@ -11,13 +13,14 @@ import (
 const (
 	RequestView = "request"
 	StatusView  = "status"
+	DelayView   = "delay"
 	HeadersView = "headers"
 	BodyView    = "body"
 	InfoView    = "info"
 )
 
 var (
-	cicleable = []string{StatusView, HeadersView, BodyView}
+	cicleable = []string{StatusView, DelayView, HeadersView, BodyView}
 )
 
 type UI struct {
@@ -73,7 +76,7 @@ func (ui *UI) Layout(g *gocui.Gui) error {
 }
 
 func (ui *UI) setResponseView(x0, y0, x1, y1 int) error {
-	split := NewSplit(y1).Fixed(2).Relative(40)
+	split := NewSplit(y1).Fixed(2, 3).Relative(40)
 	if v, err := ui.SetView(StatusView, x0, y0, x1, split.Next()); err != nil {
 		if err != gocui.ErrUnknownView {
 			return err
@@ -83,6 +86,16 @@ func (ui *UI) setResponseView(x0, y0, x1, y1 int) error {
 		v.Editable = true
 		v.Editor = gocui.EditorFunc(statusEditor)
 		fmt.Fprintf(v, "%d", ui.resp.Status)
+	}
+
+	if v, err := ui.SetView(DelayView, x0, split.Current()+1, x1, split.Next()); err != nil {
+		if err != gocui.ErrUnknownView {
+			return err
+		}
+
+		v.Title = "Delay (ms) "
+		v.Editable = true
+		fmt.Fprintf(v, "%d", ui.resp.Delay/time.Millisecond)
 	}
 
 	if v, err := ui.SetView(HeadersView, x0, split.Current()+1, x1, split.Next()); err != nil {
@@ -203,6 +216,15 @@ func saveResponse(ui *UI) func(g *gocui.Gui, v *gocui.View) error {
 			bar.Write([]byte(fmt.Sprintf("%+v", err)))
 			return nil
 		}
+
+		delay := getViewBuffer(g, DelayView)
+		delay = strings.Trim(delay, " \n")
+		intDelay, err := strconv.Atoi(delay)
+		if err != nil {
+			return fmt.Errorf("Invalid delay format: %+v", err)
+		}
+
+		resp.Delay = time.Duration(intDelay) * time.Millisecond
 
 		bar.Write([]byte("Response saved!"))
 

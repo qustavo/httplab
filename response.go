@@ -5,12 +5,14 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"time"
 )
 
 type Response struct {
 	Status  int
 	Headers http.Header
 	Body    []byte
+	Delay   time.Duration
 }
 
 func NewResponse(status, headers, body string) (*Response, error) {

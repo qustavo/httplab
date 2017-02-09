@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"net/http/httputil"
 	"strings"
+	"time"
 
 	"github.com/gchaincl/httplab"
 )
@@ -21,7 +22,9 @@ func NewHandler(ui *httplab.UI) http.Handler {
 			[]byte(strings.Replace(string(buf), "\r", "", -1)),
 		)
 
-		ui.Response().Write(w)
+		resp := ui.Response()
+		time.Sleep(resp.Delay)
+		resp.Write(w)
 
 	}
 	return http.HandlerFunc(fn)
