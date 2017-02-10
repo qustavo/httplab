@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 	"time"
@@ -10,10 +11,13 @@ import (
 
 func NewHandler(ui *httplab.UI) http.Handler {
 	fn := func(w http.ResponseWriter, req *http.Request) {
-		ui.Display(
-			httplab.RequestView,
-			httplab.DumpRequest(req),
-		)
+		buf, err := httplab.DumpRequest(req)
+		if err != nil {
+			fmtErr := fmt.Sprintf("%+v", err)
+			ui.Display(httplab.InfoView, []byte(fmtErr))
+		}
+
+		ui.Display(httplab.RequestView, buf)
 
 		resp := ui.Response()
 		time.Sleep(resp.Delay)
