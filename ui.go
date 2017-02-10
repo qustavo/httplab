@@ -29,7 +29,8 @@ var cicleable = []string{
 
 type UI struct {
 	*gocui.Gui
-	resp *Response
+	resp      *Response
+	infoTimer *time.Timer
 }
 
 func NewUI() (*UI, error) {
@@ -79,6 +80,26 @@ func (ui *UI) Layout(g *gocui.Gui) error {
 	}
 
 	return nil
+}
+
+func (ui *UI) Info(msg string) {
+	v, err := ui.View(InfoView)
+	if v == nil || err != nil {
+		return
+	}
+
+	v.Clear()
+	fmt.Fprintf(v, msg)
+
+	if ui.infoTimer != nil {
+		ui.infoTimer.Stop()
+	}
+	ui.infoTimer = time.AfterFunc(3*time.Second, func() {
+		ui.Execute(func(g *gocui.Gui) error {
+			v.Clear()
+			return nil
+		})
+	})
 }
 
 func (ui *UI) setResponseView(x0, y0, x1, y1 int) error {
@@ -228,11 +249,9 @@ func saveResponse(ui *UI) func(g *gocui.Gui, v *gocui.View) error {
 		headers := getViewBuffer(g, HeadersView)
 		body := getViewBuffer(g, BodyView)
 
-		bar, _ := g.View(InfoView)
-		bar.Clear()
 		resp, err := NewResponse(status, headers, body)
 		if err != nil {
-			bar.Write([]byte(fmt.Sprintf("%+v", err)))
+			ui.Info(fmt.Sprintf("%+v", err))
 			return nil
 		}
 
@@ -240,22 +259,13 @@ func saveResponse(ui *UI) func(g *gocui.Gui, v *gocui.View) error {
 		delay = strings.Trim(delay, " \n")
 		intDelay, err := strconv.Atoi(delay)
 		if err != nil {
-			return fmt.Errorf("Invalid delay format: %+v", err)
+			ui.Info(fmt.Sprintf("Can't parse '%s' as number", delay))
+			return nil
 		}
-
 		resp.Delay = time.Duration(intDelay) * time.Millisecond
 
-		bar.Write([]byte("Response saved!"))
-
-		go func() {
-			time.Sleep(time.Second * 3)
-			g.Execute(func(_ *gocui.Gui) error {
-				bar.Clear()
-				return nil
-			})
-		}()
-
 		ui.resp = resp
+		ui.Info("Response saved!")
 		return nil
 	}
 
