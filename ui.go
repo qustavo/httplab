@@ -19,9 +19,13 @@ const (
 	InfoView    = "info"
 )
 
-var (
-	cicleable = []string{StatusView, DelayView, HeadersView, BodyView}
-)
+var cicleable = []string{
+	StatusView,
+	DelayView,
+	HeadersView,
+	BodyView,
+	RequestView,
+}
 
 type UI struct {
 	*gocui.Gui
@@ -60,6 +64,8 @@ func (ui *UI) Layout(g *gocui.Gui) error {
 			return err
 		}
 		v.Title = "Request"
+		v.Editable = true
+		v.Editor = gocui.EditorFunc(readOnlyEditor)
 	}
 
 	if err := ui.setResponseView(splitX.Current(), 0, maxX-1, splitY.Current()); err != nil {
@@ -160,6 +166,19 @@ func (ui *UI) Loop() error {
 	}
 
 	return nil
+}
+
+func readOnlyEditor(v *gocui.View, key gocui.Key, ch rune, mod gocui.Modifier) {
+	switch {
+	case key == gocui.KeyArrowDown:
+		v.MoveCursor(0, 1, true)
+	case key == gocui.KeyArrowUp:
+		v.MoveCursor(0, -1, false)
+	case key == gocui.KeyArrowLeft:
+		v.MoveCursor(-1, 0, false)
+	case key == gocui.KeyArrowRight:
+		v.MoveCursor(1, 0, false)
+	}
 }
 
 func statusEditor(v *gocui.View, key gocui.Key, ch rune, mod gocui.Modifier) {
