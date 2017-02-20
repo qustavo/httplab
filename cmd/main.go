@@ -1,24 +1,23 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"net/http"
-	"runtime"
 	"time"
 
 	"github.com/gchaincl/httplab"
+	"github.com/jroimartin/gocui"
 )
 
-func NewHandler(ui *httplab.UI) http.Handler {
+func NewHandler(ui *httplab.UI, g *gocui.Gui) http.Handler {
 	fn := func(w http.ResponseWriter, req *http.Request) {
-		ui.Info("New Request from " + req.Host)
+		ui.Info(g, "New Request from "+req.Host)
 		buf, err := httplab.DumpRequest(req)
 		if err != nil {
-			ui.Info(fmt.Sprintf("%+v", err))
+			ui.Info(g, "%v", err)
 		}
 
-		ui.Display(httplab.RequestView, buf)
+		ui.Display(g, "request", buf)
 
 		resp := ui.Response()
 		time.Sleep(resp.Delay)
@@ -29,26 +28,25 @@ func NewHandler(ui *httplab.UI) http.Handler {
 }
 
 func main() {
-	ui, err := httplab.NewUI()
+	g, err := gocui.NewGui(gocui.Output256)
 	if err != nil {
 		log.Fatalln(err)
 	}
 
+	ui := httplab.NewUI()
+	if err := ui.Init(g); err != nil {
+		log.Fatalln(err)
+	}
+
+	http.Handle("/", NewHandler(ui, g))
 	go func() {
-
-		http.Handle("/", NewHandler(ui))
-
-		// Let the UI allocate the views before use them
-		runtime.Gosched()
-		ui.Info("Listening on :8000")
-
-		if err := http.ListenAndServe(":8000", nil); err != nil {
+		ui.Info(g, "Listening on :18000")
+		if err := http.ListenAndServe(":18000", nil); err != nil {
 			log.Fatalln(err)
 		}
 	}()
 
-	if err := ui.Loop(); err != nil {
+	if err := g.MainLoop(); err != nil && err != gocui.ErrQuit {
 		log.Fatalln(err)
 	}
-
 }
