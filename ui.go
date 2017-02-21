@@ -18,9 +18,35 @@ var cicleable = []string{
 	"request",
 }
 
-type readOnlyEditor struct{}
+type viewEditor struct {
+	app           *UI
+	g             *gocui.Gui
+	orig          gocui.Editor
+	backTabEscape bool
+}
 
-func (e *readOnlyEditor) Edit(v *gocui.View, key gocui.Key, _ rune, _ gocui.Modifier) {
+func (e *viewEditor) Edit(v *gocui.View, key gocui.Key, ch rune, mod gocui.Modifier) {
+	if ch == '[' && mod == gocui.ModAlt {
+		e.backTabEscape = true
+		return
+	}
+
+	if e.backTabEscape {
+		if ch == 'Z' {
+			e.app.prevView(e.g, nil)
+			e.backTabEscape = false
+			return
+		}
+	}
+
+	e.orig.Edit(v, key, ch, mod)
+}
+
+type readOnlyEditor struct {
+	editor gocui.Editor
+}
+
+func (e *readOnlyEditor) Edit(v *gocui.View, key gocui.Key, ch rune, mod gocui.Modifier) {
 	switch {
 	case key == gocui.KeyArrowDown:
 		v.MoveCursor(0, 1, true)
@@ -31,11 +57,15 @@ func (e *readOnlyEditor) Edit(v *gocui.View, key gocui.Key, _ rune, _ gocui.Modi
 	case key == gocui.KeyArrowRight:
 		v.MoveCursor(1, 0, false)
 	}
+
+	e.editor.Edit(v, key, ch, mod)
 }
 
-type statusEditor struct{}
+type statusEditor struct {
+	editor gocui.Editor
+}
 
-func (e *statusEditor) Edit(v *gocui.View, key gocui.Key, ch rune, _ gocui.Modifier) {
+func (e *statusEditor) Edit(v *gocui.View, key gocui.Key, ch rune, mod gocui.Modifier) {
 	switch {
 	case ch >= 48 && ch <= 57:
 		if len(v.Buffer()) > 4 {
@@ -49,12 +79,16 @@ func (e *statusEditor) Edit(v *gocui.View, key gocui.Key, ch rune, _ gocui.Modif
 	case key == gocui.KeyArrowRight:
 		v.MoveCursor(1, 0, false)
 	}
+
+	e.editor.Edit(v, key, ch, mod)
 }
 
+var defaultEditor gocui.Editor
+
 type UI struct {
-	resp        *Response
-	infoTimer   *time.Timer
-	currentView string
+	resp      *Response
+	infoTimer *time.Timer
+	viewIndex int
 }
 
 func NewUI() *UI {
@@ -73,6 +107,8 @@ func (ui *UI) Init(g *gocui.Gui) error {
 	g.Highlight = true
 	g.SelFgColor = gocui.ColorGreen
 
+	defaultEditor = &viewEditor{ui, g, gocui.DefaultEditor, false}
+
 	ui.Layout(g)
 	ui.bindKeys(g)
 	return nil
@@ -89,7 +125,7 @@ func (ui *UI) Layout(g *gocui.Gui) error {
 		}
 		v.Title = "Request"
 		v.Editable = true
-		v.Editor = &readOnlyEditor{}
+		v.Editor = &readOnlyEditor{defaultEditor}
 	}
 
 	if err := ui.setResponseView(g, splitX.Current(), 0, maxX-1, splitY.Current()); err != nil {
@@ -116,7 +152,7 @@ func (ui *UI) setResponseView(g *gocui.Gui, x0, y0, x1, y1 int) error {
 
 		v.Title = "Status"
 		v.Editable = true
-		v.Editor = &statusEditor{}
+		v.Editor = &statusEditor{defaultEditor}
 		fmt.Fprintf(v, "%d", ui.resp.Status)
 	}
 
@@ -127,6 +163,7 @@ func (ui *UI) setResponseView(g *gocui.Gui, x0, y0, x1, y1 int) error {
 
 		v.Title = "Delay (ms) "
 		v.Editable = true
+		v.Editor = defaultEditor
 		fmt.Fprintf(v, "%d", ui.resp.Delay/time.Millisecond)
 	}
 
@@ -135,6 +172,7 @@ func (ui *UI) setResponseView(g *gocui.Gui, x0, y0, x1, y1 int) error {
 			return err
 		}
 		v.Editable = true
+		v.Editor = defaultEditor
 		v.Title = "Headers"
 		for key, _ := range ui.resp.Headers {
 			fmt.Fprintf(v, "%s: %s\n", key, ui.resp.Headers.Get(key))
@@ -145,8 +183,9 @@ func (ui *UI) setResponseView(g *gocui.Gui, x0, y0, x1, y1 int) error {
 		if err != gocui.ErrUnknownView {
 			return err
 		}
-		v.Editable = true
 		v.Title = "Body"
+		v.Editable = true
+		v.Editor = defaultEditor
 		fmt.Fprintf(v, "%s", string(ui.resp.Body))
 	}
 
@@ -155,11 +194,7 @@ func (ui *UI) setResponseView(g *gocui.Gui, x0, y0, x1, y1 int) error {
 
 func (ui *UI) setView(g *gocui.Gui, view string) error {
 	_, err := g.SetCurrentView(view)
-	if err != nil {
-		return err
-	}
-	ui.currentView = view
-	return nil
+	return err
 }
 
 func (ui *UI) Info(g *gocui.Gui, format string, args ...interface{}) {
@@ -210,28 +245,21 @@ func (ui *UI) bindKeys(g *gocui.Gui) error {
 		return err
 	}
 
-	if err := g.SetKeybinding("", gocui.KeyTab, gocui.ModNone, ui.cicleViews); err != nil {
+	if err := g.SetKeybinding("", gocui.KeyTab, gocui.ModNone, ui.nextView); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func (ui *UI) cicleViews(g *gocui.Gui, cur *gocui.View) error {
-	next := cicleable[0]
-	if cur == nil {
-		_, err := g.SetCurrentView(next)
-		return err
-	}
+func (ui *UI) nextView(g *gocui.Gui, _ *gocui.View) error {
+	ui.viewIndex = (ui.viewIndex + 1) % len(cicleable)
+	return ui.setView(g, cicleable[ui.viewIndex])
+}
 
-	for i, view := range cicleable {
-		if view == cur.Name() {
-			next = cicleable[(i+1)%len(cicleable)]
-		}
-	}
-
-	_, err := g.SetCurrentView(next)
-	return err
+func (ui *UI) prevView(g *gocui.Gui, cur *gocui.View) error {
+	ui.viewIndex = (ui.viewIndex - 1 + len(cicleable)) % len(cicleable)
+	return ui.setView(g, cicleable[ui.viewIndex])
 }
 
 func getViewBuffer(g *gocui.Gui, view string) string {
