@@ -1,7 +1,7 @@
 # HTTPLab
 An interactive HTTP server.
 
-HTTPLabs let you inspect HTTP request and forge responses
+HTTPLabs let you inspect HTTP requests and forge responses.
 
 [![asciicast](https://asciinema.org/a/c613qjyikodunp72ox54irn2j.png)](https://asciinema.org/a/c613qjyikodunp72ox54irn2j)
 
@@ -28,3 +28,5 @@ Key                                     | Description
 * Load saved responses
 * Prebuilt responses per path
 * Inline help
+
+_HTTPLab is heavily inspired by [wuzz](https://github.com/asciimoo/wuzz)_
