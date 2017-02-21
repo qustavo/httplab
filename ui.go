@@ -1,4 +1,4 @@
-package httplab
+package main
 
 import (
 	"fmt"
@@ -71,7 +71,6 @@ func (e *statusEditor) Edit(v *gocui.View, key gocui.Key, ch rune, mod gocui.Mod
 		if len(v.Buffer()) > 4 {
 			return
 		}
-		v.EditWrite(ch)
 	case key == gocui.KeyBackspace || key == gocui.KeyBackspace2:
 		v.EditDelete(true)
 	case key == gocui.KeyArrowLeft:

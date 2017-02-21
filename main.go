@@ -7,14 +7,13 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/gchaincl/httplab"
 	"github.com/jroimartin/gocui"
 )
 
-func NewHandler(ui *httplab.UI, g *gocui.Gui) http.Handler {
+func NewHandler(ui *UI, g *gocui.Gui) http.Handler {
 	fn := func(w http.ResponseWriter, req *http.Request) {
 		ui.Info(g, "New Request from "+req.Host)
-		buf, err := httplab.DumpRequest(req)
+		buf, err := DumpRequest(req)
 		if err != nil {
 			ui.Info(g, "%v", err)
 		}
@@ -40,7 +39,7 @@ func main() {
 	}
 	defer g.Close()
 
-	ui := httplab.NewUI()
+	ui := NewUI()
 	if err := ui.Init(g); err != nil {
 		log.Fatalln(err)
 	}

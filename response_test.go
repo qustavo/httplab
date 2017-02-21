@@ -1,4 +1,4 @@
-package httplab
+package main
 
 import (
 	"fmt"

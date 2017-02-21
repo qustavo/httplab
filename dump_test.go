@@ -1,6 +1,6 @@
 // +build visualtest
 
-package httplab
+package main
 
 import (
 	"bytes"
