@@ -4,14 +4,16 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"strconv"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
-func TestResponseiStatus(t *testing.T) {
+func TestResponseStatus(t *testing.T) {
 	// only status between 100 and 599 are valid
 	for i := 100; i < 600; i++ {
 		status := strconv.Itoa(i)
@@ -70,4 +72,30 @@ func TestResponseWrite(t *testing.T) {
 	assert.Equal(t, resp.Status, rec.Code)
 	assert.Equal(t, resp.Headers.Get("X-Foo"), rec.Header().Get("X-Foo"))
 	assert.Equal(t, resp.Body, rec.Body.Bytes())
+}
+
+func TestLoadFromJSON(t *testing.T) {
+	rs, err := LoadResponsesFromPath("./testdata/httplab.json")
+	require.NoError(t, err)
+
+	require.Contains(t, rs, "t1")
+
+	r := rs["t1"]
+	assert.Equal(t, 200, r.Status)
+	assert.Equal(t, time.Duration(1000), r.Delay)
+	assert.Equal(t, []byte("xxx"), r.Body)
+	assert.Equal(t, "value", r.Headers.Get("X-MyHeader"))
+
+	t.Run("When file is empty", func(t *testing.T) {
+		path := time.Now().Format(time.UnixDate)
+		defer os.Remove(path)
+
+		rs, err := LoadResponsesFromPath(path)
+		require.NoError(t, err)
+		assert.Len(t, rs, 0)
+
+		// file has to be created
+		_, err = os.Stat(path)
+		assert.NoError(t, err)
+	})
 }

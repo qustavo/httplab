@@ -85,10 +85,11 @@ func (e *statusEditor) Edit(v *gocui.View, key gocui.Key, ch rune, mod gocui.Mod
 var defaultEditor gocui.Editor
 
 type UI struct {
-	resp        *Response
-	infoTimer   *time.Timer
-	viewIndex   int
-	activePopup bool
+	resp         *Response
+	infoTimer    *time.Timer
+	viewIndex    int
+	currentPopup string
+	responses    []*Response
 }
 
 func NewUI() *UI {
@@ -236,7 +237,7 @@ func (ui *UI) bindKeys(g *gocui.Gui) error {
 		return err
 	}
 
-	if err := g.SetKeybinding("", gocui.KeyCtrlS, gocui.ModNone, ui.saveResponse); err != nil {
+	if err := g.SetKeybinding("", gocui.KeyCtrlA, gocui.ModNone, ui.applyResponse); err != nil {
 		return err
 	}
 
@@ -245,6 +246,30 @@ func (ui *UI) bindKeys(g *gocui.Gui) error {
 	}
 
 	if err := g.SetKeybinding("", gocui.KeyCtrlH, gocui.ModNone, ui.toggleBindings); err != nil {
+		return err
+	}
+
+	if err := g.SetKeybinding("", gocui.KeyCtrlL, gocui.ModNone, ui.toggleResponsesLoader); err != nil {
+		return err
+	}
+
+	if err := g.SetKeybinding("", gocui.KeyCtrlS, gocui.ModNone, ui.saveResponsePopup); err != nil {
+		return err
+	}
+
+	if err := g.SetKeybinding("responses", gocui.KeyArrowUp, gocui.ModNone, cursorUp); err != nil {
+		return err
+	}
+
+	if err := g.SetKeybinding("responses", gocui.KeyArrowDown, gocui.ModNone, cursorDown); err != nil {
+		return err
+	}
+
+	if err := g.SetKeybinding("responses", gocui.KeyEnter, gocui.ModNone, ui.selectResponse); err != nil {
+		return err
+	}
+
+	if err := g.SetKeybinding("save", gocui.KeyEnter, gocui.ModNone, ui.saveResponseAs); err != nil {
 		return err
 	}
 
@@ -261,6 +286,19 @@ func (ui *UI) prevView(g *gocui.Gui, cur *gocui.View) error {
 	return ui.setView(g, cicleable[ui.viewIndex])
 }
 
+func cursorUp(g *gocui.Gui, v *gocui.View) error {
+	cx, cy := v.Cursor()
+	v.SetCursor(cx, cy-1)
+	return nil
+}
+
+func cursorDown(g *gocui.Gui, v *gocui.View) error {
+	cx, cy := v.Cursor()
+	v.SetCursor(cx, cy+1)
+	return nil
+	return nil
+}
+
 func getViewBuffer(g *gocui.Gui, view string) string {
 	v, err := g.View(view)
 	if err != nil {
@@ -269,33 +307,66 @@ func getViewBuffer(g *gocui.Gui, view string) string {
 	return v.Buffer()
 }
 
-func (ui *UI) saveResponse(g *gocui.Gui, v *gocui.View) error {
+func (ui *UI) currentResponse(g *gocui.Gui) (*Response, error) {
 	status := getViewBuffer(g, "status")
 	headers := getViewBuffer(g, "headers")
 	body := getViewBuffer(g, "body")
 
 	resp, err := NewResponse(status, headers, body)
 	if err != nil {
-		ui.Info(g, "%v", err)
-		return nil
+		return nil, err
 	}
 
 	delay := getViewBuffer(g, "delay")
 	delay = strings.Trim(delay, " \n")
 	intDelay, err := strconv.Atoi(delay)
 	if err != nil {
-		ui.Info(g, "Can't parse '%s' as number", delay)
-		return nil
+		return nil, fmt.Errorf("Can't parse '%s' as number", delay)
 	}
 	resp.Delay = time.Duration(intDelay) * time.Millisecond
 
+	return resp, nil
+}
+
+func (ui *UI) applyResponse(g *gocui.Gui, v *gocui.View) error {
+	resp, err := ui.currentResponse(g)
+	if err != nil {
+		ui.Info(g, "%v", err)
+		return nil
+	}
+
 	ui.resp = resp
-	ui.Info(g, "Response saved!")
+	ui.Info(g, "Response updated!")
 	return nil
 }
 
+func (ui *UI) restoreResponse(g *gocui.Gui, r *Response) {
+	var v *gocui.View
+
+	v, _ = g.View("status")
+	v.Clear()
+	fmt.Fprintf(v, "%d", r.Status)
+
+	v, _ = g.View("delay")
+	v.Clear()
+	fmt.Fprintf(v, "%d", r.Delay)
+
+	v, _ = g.View("headers")
+	v.Clear()
+	for key, _ := range r.Headers {
+		fmt.Fprintf(v, "%s: %s", key, r.Headers.Get(key))
+	}
+
+	v, _ = g.View("body")
+	v.Clear()
+	v.Write(r.Body)
+
+	ui.Info(g, "Response loaded!")
+	ui.resp = r
+}
+
 func (ui *UI) setView(g *gocui.Gui, view string) error {
-	if err := ui.closePopup(g); err != nil {
+	if err := ui.closePopup(g, ui.currentPopup); err != nil {
 		return err
 	}
 
@@ -303,34 +374,29 @@ func (ui *UI) setView(g *gocui.Gui, view string) error {
 	return err
 }
 
-func (ui *UI) createPopupView(g *gocui.Gui, title string, x, y int) (*gocui.View, error) {
+func (ui *UI) createPopupView(g *gocui.Gui, viewname string, w, h int) (*gocui.View, error) {
 	maxX, maxY := g.Size()
-	view, err := g.SetView("popup", maxX/2-x/2, maxY/2-y/2, maxX/2+x/2, maxY/2+y/2)
+	x := maxX/2 - w/2
+	y := maxY/2 - h/2
+	view, err := g.SetView(viewname, x, y, x+w, y+h)
 	if err != nil && err != gocui.ErrUnknownView {
 		return nil, err
 	}
 
-	g.Cursor = false
-	view.Title = title
 	return view, nil
 }
 
-func (ui *UI) closePopup(g *gocui.Gui) error {
-	if !ui.activePopup {
-		return nil
-	}
-
-	if _, err := g.View("popup"); err != nil {
+func (ui *UI) closePopup(g *gocui.Gui, viewname string) error {
+	if _, err := g.View(viewname); err != nil {
 		if err == gocui.ErrUnknownView {
 			return nil
 		}
 		return err
 	}
 
-	g.DeleteView("popup")
-	g.DeleteKeybindings("popup")
+	g.DeleteView(viewname)
 	g.Cursor = true
-	ui.activePopup = false
+	ui.currentPopup = ""
 
 	// Set active the popup caller
 	ui.nextView(g, nil)
@@ -340,30 +406,133 @@ func (ui *UI) closePopup(g *gocui.Gui) error {
 }
 func (ui *UI) toggleBindings(g *gocui.Gui, v *gocui.View) error {
 	info := `
-
 	Tab       : Next Input
 	Shift+Tab : Previous Input
-	Ctrl+s    : Save Response
+	Ctrl+a    : Apply Response changes
+	Ctrl+s    : Save Response as
+	Ctrl+l    : Toggle responses list
 	Ctrl+h    : Toggle Help
 	Ctrl+c    : Quit
 	`
 
-	if ui.activePopup {
-		return ui.closePopup(g)
+	if ui.currentPopup == "bindings" {
+		return ui.closePopup(g, "bindings")
 	}
 
-	view, err := ui.createPopupView(g, "Bindings", 30, 8)
+	view, err := ui.createPopupView(g, "bindings", 40, 7)
 	if err != nil {
 		return err
 	}
 
+	if err := ui.setView(g, view.Name()); err != nil {
+		return err
+	}
+	ui.currentPopup = "bindings"
+
+	g.Cursor = false
+	view.Title = "Bindings"
 	fmt.Fprint(view, info)
+
+	return nil
+}
+
+func (ui *UI) toggleResponsesLoader(g *gocui.Gui, v *gocui.View) error {
+	rs, err := LoadResponses()
+	if err != nil {
+		ui.Info(g, err.Error())
+		return nil
+	}
+
+	if len(rs) == 0 {
+		ui.Info(g, "No responses has been saved")
+		return nil
+	}
+
+	if ui.currentPopup == "responses" {
+		return ui.closePopup(g, "responses")
+	}
+
+	view, err := ui.createPopupView(g, "responses", 30, len(rs)+1)
+	if err != nil {
+		return err
+	}
 
 	if err := ui.setView(g, view.Name()); err != nil {
 		return err
 	}
+	view.Title = "Responses"
 
-	ui.activePopup = true
+	ui.responses = make([]*Response, len(rs))
+	var i uint
+	for key, _ := range rs {
+		resp := rs[key]
+		ui.responses[i] = resp
+		fmt.Fprintf(view, "[%d] %s => %d\n", i+1, key, resp.Status)
+		i++
+	}
+	ui.currentPopup = "responses"
+
+	return nil
+}
+
+func (ui *UI) selectResponse(g *gocui.Gui, v *gocui.View) error {
+	_, y := v.Cursor()
+
+	if len(ui.responses) > y {
+		ui.restoreResponse(g, ui.responses[y])
+	}
+
+	return nil
+}
+
+func (ui *UI) saveResponsePopup(g *gocui.Gui, v *gocui.View) error {
+	if err := ui.closePopup(g, ui.currentPopup); err != nil {
+		return err
+	}
+
+	popup, err := ui.createPopupView(g, "save", 20, 2)
+	if err != nil {
+		return err
+	}
+
+	ui.setView(g, popup.Name())
+	popup.Title = "Save as..."
+	popup.Editable = true
+	return nil
+}
+
+func (ui *UI) saveResponseAs(g *gocui.Gui, v *gocui.View) error {
+	if v.Name() != "save" {
+		return nil
+	}
+
+	rs, err := LoadResponses()
+	if err != nil {
+		ui.Info(g, "%v", err)
+		return nil
+	}
+	if rs == nil {
+		rs = make(map[string]*Response)
+	}
+
+	resp, err := ui.currentResponse(g)
+	if err != nil {
+		ui.Info(g, "%v", err)
+		return nil
+	}
+
+	savedAs := strings.Trim(v.Buffer(), " \n")
+	rs[savedAs] = resp
+	if err := SaveResponses(rs); err != nil {
+		return err
+	}
+
+	g.DeleteView(v.Name())
+
+	ui.Info(g, "Response applied and saved as '%s'", savedAs)
+	ui.nextView(g, nil)
+	ui.prevView(g, nil)
+
 	return nil
 }
 

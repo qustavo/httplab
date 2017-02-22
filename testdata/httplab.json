@@ -1,0 +1,12 @@
+{
+	"Responses": {
+		"t1": {
+			"Status": 200,
+			"Delay": 1000,
+			"Headers": {
+				"X-MyHeader": "value"
+			},
+			"Body": "xxx"
+		}
+	}
+}
