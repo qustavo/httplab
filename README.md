@@ -1,5 +1,5 @@
 # HTTPLab
-An interactive HTTP server.
+An interactive web server.
 
 HTTPLabs let you inspect HTTP requests and forge responses.
 
