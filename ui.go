@@ -85,9 +85,10 @@ func (e *statusEditor) Edit(v *gocui.View, key gocui.Key, ch rune, mod gocui.Mod
 var defaultEditor gocui.Editor
 
 type UI struct {
-	resp      *Response
-	infoTimer *time.Timer
-	viewIndex int
+	resp        *Response
+	infoTimer   *time.Timer
+	viewIndex   int
+	activePopup bool
 }
 
 func NewUI() *UI {
@@ -191,11 +192,6 @@ func (ui *UI) setResponseView(g *gocui.Gui, x0, y0, x1, y1 int) error {
 	return nil
 }
 
-func (ui *UI) setView(g *gocui.Gui, view string) error {
-	_, err := g.SetCurrentView(view)
-	return err
-}
-
 func (ui *UI) Info(g *gocui.Gui, format string, args ...interface{}) {
 	v, err := g.View("info")
 	if v == nil || err != nil {
@@ -248,6 +244,10 @@ func (ui *UI) bindKeys(g *gocui.Gui) error {
 		return err
 	}
 
+	if err := g.SetKeybinding("", gocui.KeyCtrlH, gocui.ModNone, ui.toggleBindings); err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -291,6 +291,79 @@ func (ui *UI) saveResponse(g *gocui.Gui, v *gocui.View) error {
 
 	ui.resp = resp
 	ui.Info(g, "Response saved!")
+	return nil
+}
+
+func (ui *UI) setView(g *gocui.Gui, view string) error {
+	if err := ui.closePopup(g); err != nil {
+		return err
+	}
+
+	_, err := g.SetCurrentView(view)
+	return err
+}
+
+func (ui *UI) createPopupView(g *gocui.Gui, title string, x, y int) (*gocui.View, error) {
+	maxX, maxY := g.Size()
+	view, err := g.SetView("popup", maxX/2-x/2, maxY/2-y/2, maxX/2+x/2, maxY/2+y/2)
+	if err != nil && err != gocui.ErrUnknownView {
+		return nil, err
+	}
+
+	g.Cursor = false
+	view.Title = title
+	return view, nil
+}
+
+func (ui *UI) closePopup(g *gocui.Gui) error {
+	if !ui.activePopup {
+		return nil
+	}
+
+	if _, err := g.View("popup"); err != nil {
+		if err == gocui.ErrUnknownView {
+			return nil
+		}
+		return err
+	}
+
+	g.DeleteView("popup")
+	g.DeleteKeybindings("popup")
+	g.Cursor = true
+	ui.activePopup = false
+
+	// Set active the popup caller
+	ui.nextView(g, nil)
+	ui.prevView(g, nil)
+
+	return nil
+}
+func (ui *UI) toggleBindings(g *gocui.Gui, v *gocui.View) error {
+	info := `
+
+	Tab       : Next Input
+	Shift+Tab : Previous Input
+	Ctrl+s    : Save Response
+	Ctrl+h    : Toggle Help
+	Ctrl+c    : Quit
+	`
+
+	if ui.activePopup {
+		return ui.closePopup(g)
+	}
+
+	view, err := ui.createPopupView(g, "Bindings", 30, 8)
+	if err != nil {
+		return err
+	}
+
+	fmt.Fprint(view, info)
+
+	if err := ui.setView(g, view.Name()); err != nil {
+		return err
+	}
+
+	ui.activePopup = true
 	return nil
 }
 

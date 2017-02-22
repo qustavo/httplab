@@ -22,11 +22,11 @@ Key                                     | Description
 <kbd>Tab</kbd>                          | Next Input
 <kbd>Shift+Tab</kbd>                    | Previous Input
 <kbd>Ctrl+s</kbd>                       | Save Response
+<kbd>Ctrl+h</kbd>                       | Toggle Help
 <kbd>Ctrl+c</kbd>                       | Quit
 
 ## TODO
 * Load saved responses
 * Prebuilt responses per path
-* Inline help
 
 _HTTPLab is heavily inspired by [wuzz](https://github.com/asciimoo/wuzz)_
