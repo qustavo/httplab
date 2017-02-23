@@ -9,6 +9,13 @@ HTTPLabs let you inspect HTTP requests and forge responses.
 ```bash
 go get github.com/gchaincl/httplab
 ```
+
+### Archlinux
+```
+yaourt httplab
+```
+
+
 ## Help
 ```
 Usage of httplab:
