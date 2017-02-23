@@ -86,10 +86,10 @@ var defaultEditor gocui.Editor
 
 type UI struct {
 	resp         *Response
+	responses    Responses
 	infoTimer    *time.Timer
 	viewIndex    int
 	currentPopup string
-	responses    []*Response
 }
 
 func NewUI() *UI {
@@ -257,6 +257,12 @@ func (ui *UI) bindKeys(g *gocui.Gui) error {
 		return err
 	}
 
+	for _, view := range []string{"bindings", "responses"} {
+		if err := g.SetKeybinding(view, 'q', gocui.ModNone, ui.quitPopup); err != nil {
+			return err
+		}
+	}
+
 	if err := g.SetKeybinding("responses", gocui.KeyArrowUp, gocui.ModNone, cursorUp); err != nil {
 		return err
 	}
@@ -412,6 +418,7 @@ func (ui *UI) toggleBindings(g *gocui.Gui, v *gocui.View) error {
 	Ctrl+s    : Save Response as
 	Ctrl+l    : Toggle responses list
 	Ctrl+h    : Toggle Help
+	q         : Close popup
 	Ctrl+c    : Quit
 	`
 
@@ -419,7 +426,7 @@ func (ui *UI) toggleBindings(g *gocui.Gui, v *gocui.View) error {
 		return ui.closePopup(g, "bindings")
 	}
 
-	view, err := ui.createPopupView(g, "bindings", 40, 7)
+	view, err := ui.createPopupView(g, "bindings", 40, 9)
 	if err != nil {
 		return err
 	}
@@ -460,16 +467,14 @@ func (ui *UI) toggleResponsesLoader(g *gocui.Gui, v *gocui.View) error {
 	if err := ui.setView(g, view.Name()); err != nil {
 		return err
 	}
+
+	for key, _ := range rs {
+		fmt.Fprintf(view, "%s\n", rs.String(key))
+	}
+
 	view.Title = "Responses"
 
-	ui.responses = make([]*Response, len(rs))
-	var i uint
-	for key, _ := range rs {
-		resp := rs[key]
-		ui.responses[i] = resp
-		fmt.Fprintf(view, "[%d] %s => %d\n", i+1, key, resp.Status)
-		i++
-	}
+	ui.responses = rs
 	ui.currentPopup = "responses"
 
 	return nil
@@ -477,10 +482,20 @@ func (ui *UI) toggleResponsesLoader(g *gocui.Gui, v *gocui.View) error {
 
 func (ui *UI) selectResponse(g *gocui.Gui, v *gocui.View) error {
 	_, y := v.Cursor()
-
-	if len(ui.responses) > y {
-		ui.restoreResponse(g, ui.responses[y])
+	line, err := v.Line(y)
+	if err != nil {
+		return err
 	}
+	if r := ui.responses.FromString(line); r != nil {
+		ui.restoreResponse(g, r)
+	}
+
+	return nil
+}
+
+func (ui *UI) deleteResponse(g *gocui.Gui, v *gocui.View) error {
+	_, y := v.Cursor()
+	_ = y
 
 	return nil
 }
@@ -512,7 +527,7 @@ func (ui *UI) saveResponseAs(g *gocui.Gui, v *gocui.View) error {
 		return nil
 	}
 	if rs == nil {
-		rs = make(map[string]*Response)
+		rs = make(Responses)
 	}
 
 	resp, err := ui.currentResponse(g)
@@ -523,7 +538,7 @@ func (ui *UI) saveResponseAs(g *gocui.Gui, v *gocui.View) error {
 
 	savedAs := strings.Trim(v.Buffer(), " \n")
 	rs[savedAs] = resp
-	if err := SaveResponses(rs); err != nil {
+	if err := rs.Save(); err != nil {
 		return err
 	}
 
@@ -534,6 +549,10 @@ func (ui *UI) saveResponseAs(g *gocui.Gui, v *gocui.View) error {
 	ui.prevView(g, nil)
 
 	return nil
+}
+
+func (ui *UI) quitPopup(g *gocui.Gui, v *gocui.View) error {
+	return ui.closePopup(g, v.Name())
 }
 
 func quit(g *gocui.Gui, v *gocui.View) error {

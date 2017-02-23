@@ -32,6 +32,7 @@ Key                                     | Description
 <kbd>Ctrl+s</kbd>                       | Save Response as
 <kbd>Ctrl+l</kbd>                       | Toggle responses list
 <kbd>Ctrl+h</kbd>                       | Toggle Help
+<kbd>q</kbd>                            | Close popup
 <kbd>Ctrl+c</kbd>                       | Quit
 
 _HTTPLab is heavily inspired by [wuzz](https://github.com/asciimoo/wuzz)_

@@ -63,6 +63,7 @@ func (r *Response) MarshalJSON() ([]byte, error) {
 		Headers: make(map[string]string),
 	}
 
+	v.Delay = time.Duration(r.Delay) / time.Millisecond
 	v.Status = r.Status
 	v.Body = string(r.Body)
 	for key, _ := range r.Headers {
@@ -121,15 +122,65 @@ func (r *Response) Write(w http.ResponseWriter) error {
 	return err
 }
 
-func openConfigFile(path string) (*os.File, error) {
-	return os.OpenFile(path, os.O_RDWR|os.O_CREATE, 0666)
+type Responses map[string]*Response
+
+func (rs Responses) String(key string) string {
+	r := rs.Get(key)
+	if r == nil {
+		return ""
+	}
+
+	return fmt.Sprintf("%s > %d", key, r.Status)
 }
 
-func LoadResponses() (map[string]*Response, error) {
+func (rs Responses) FromString(s string) *Response {
+	split := strings.Split(s, ">")
+	if len(split) < 2 {
+		return nil
+	}
+
+	key := strings.Trim(split[0], " ")
+	return rs.Get(key)
+}
+
+func (rs Responses) Get(key string) *Response {
+	return rs[key]
+}
+
+func (rs Responses) Save() error {
+	return rs.SaveResponsesToPath(defaultConfigPath())
+}
+
+func (rs Responses) SaveResponsesToPath(path string) error {
+	f, err := openConfigFile(path)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	return rs.SaveResponsesToFile(f)
+}
+
+func (rs Responses) SaveResponsesToFile(f *os.File) error {
+	buf, err := json.MarshalIndent(struct {
+		Responses Responses
+	}{rs}, "", "  ")
+	if err != nil {
+		return err
+	}
+
+	if _, err := f.Write(buf); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func LoadResponses() (Responses, error) {
 	return LoadResponsesFromPath(defaultConfigPath())
 }
 
-func LoadResponsesFromPath(path string) (map[string]*Response, error) {
+func LoadResponsesFromPath(path string) (Responses, error) {
 	f, err := openConfigFile(path)
 	if err != nil {
 		return nil, err
@@ -138,9 +189,9 @@ func LoadResponsesFromPath(path string) (map[string]*Response, error) {
 	return LoadResponsesFromFile(f)
 }
 
-func LoadResponsesFromFile(f *os.File) (map[string]*Response, error) {
+func LoadResponsesFromFile(f *os.File) (Responses, error) {
 	r := struct {
-		Responses map[string]*Response
+		Responses Responses
 	}{}
 
 	if err := json.NewDecoder(f).Decode(&r); err != nil {
@@ -153,21 +204,6 @@ func LoadResponsesFromFile(f *os.File) (map[string]*Response, error) {
 	return r.Responses, nil
 }
 
-func SaveResponses(rs map[string]*Response) error {
-	return SaveResponsesToPath(rs, defaultConfigPath())
-}
-
-func SaveResponsesToPath(rs map[string]*Response, path string) error {
-	f, err := openConfigFile(path)
-	if err != nil {
-		return err
-	}
-
-	return SaveResponsesToFile(rs, f)
-}
-
-func SaveResponsesToFile(rs map[string]*Response, f *os.File) error {
-	return json.NewEncoder(f).Encode(struct {
-		Responses map[string]*Response
-	}{rs})
+func openConfigFile(path string) (*os.File, error) {
+	return os.OpenFile(path, os.O_RDWR|os.O_CREATE, 0666)
 }
