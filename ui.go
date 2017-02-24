@@ -18,14 +18,22 @@ var cicleable = []string{
 	"request",
 }
 
-type viewEditor struct {
-	app           *UI
+type editor struct {
+	ui            *UI
 	g             *gocui.Gui
-	orig          gocui.Editor
+	handler       gocui.Editor
 	backTabEscape bool
 }
 
-func (e *viewEditor) Edit(v *gocui.View, key gocui.Key, ch rune, mod gocui.Modifier) {
+func newEditor(ui *UI, g *gocui.Gui, handler gocui.Editor) *editor {
+	if handler == nil {
+		handler = gocui.DefaultEditor
+	}
+
+	return &editor{ui, g, handler, false}
+}
+
+func (e *editor) Edit(v *gocui.View, key gocui.Key, ch rune, mod gocui.Modifier) {
 	if ch == '[' && mod == gocui.ModAlt {
 		e.backTabEscape = true
 		return
@@ -33,23 +41,25 @@ func (e *viewEditor) Edit(v *gocui.View, key gocui.Key, ch rune, mod gocui.Modif
 
 	if e.backTabEscape {
 		if ch == 'Z' {
-			e.app.prevView(e.g, nil)
+			e.ui.prevView(e.g, nil)
 			e.backTabEscape = false
 			return
 		}
 	}
 
-	e.orig.Edit(v, key, ch, mod)
+	e.handler.Edit(v, key, ch, mod)
 }
 
-type readOnlyEditor struct {
-	editor gocui.Editor
-}
+type motionEditor struct{}
 
-func (e *readOnlyEditor) Edit(v *gocui.View, key gocui.Key, ch rune, mod gocui.Modifier) {
+func (e *motionEditor) Edit(v *gocui.View, key gocui.Key, ch rune, mod gocui.Modifier) {
+	_, y := v.Cursor()
+	maxY := strings.Count(v.Buffer(), "\n")
 	switch {
 	case key == gocui.KeyArrowDown:
-		v.MoveCursor(0, 1, true)
+		if y < maxY {
+			v.MoveCursor(0, 1, true)
+		}
 	case key == gocui.KeyArrowUp:
 		v.MoveCursor(0, -1, false)
 	case key == gocui.KeyArrowLeft:
@@ -57,32 +67,30 @@ func (e *readOnlyEditor) Edit(v *gocui.View, key gocui.Key, ch rune, mod gocui.M
 	case key == gocui.KeyArrowRight:
 		v.MoveCursor(1, 0, false)
 	}
-
-	e.editor.Edit(v, key, ch, mod)
 }
 
-type statusEditor struct {
-	editor gocui.Editor
+type numberEditor struct {
+	maxLength int
 }
 
-func (e *statusEditor) Edit(v *gocui.View, key gocui.Key, ch rune, mod gocui.Modifier) {
+func (e *numberEditor) Edit(v *gocui.View, key gocui.Key, ch rune, mod gocui.Modifier) {
+	x, _ := v.Cursor()
 	switch {
 	case ch >= 48 && ch <= 57:
-		if len(v.Buffer()) > 4 {
+		if len(v.Buffer()) > e.maxLength+1 {
 			return
 		}
+		gocui.DefaultEditor.Edit(v, key, ch, mod)
 	case key == gocui.KeyBackspace || key == gocui.KeyBackspace2:
 		v.EditDelete(true)
 	case key == gocui.KeyArrowLeft:
 		v.MoveCursor(-1, 0, false)
 	case key == gocui.KeyArrowRight:
-		v.MoveCursor(1, 0, false)
+		if x < len(v.Buffer())-1 {
+			v.MoveCursor(1, 0, false)
+		}
 	}
-
-	e.editor.Edit(v, key, ch, mod)
 }
-
-var defaultEditor gocui.Editor
 
 type UI struct {
 	resp         *Response
@@ -108,8 +116,6 @@ func (ui *UI) Init(g *gocui.Gui) error {
 	g.Highlight = true
 	g.SelFgColor = gocui.ColorGreen
 
-	defaultEditor = &viewEditor{ui, g, gocui.DefaultEditor, false}
-
 	ui.Layout(g)
 	ui.bindKeys(g)
 	return nil
@@ -126,7 +132,7 @@ func (ui *UI) Layout(g *gocui.Gui) error {
 		}
 		v.Title = "Request"
 		v.Editable = true
-		v.Editor = &readOnlyEditor{defaultEditor}
+		v.Editor = newEditor(ui, g, &motionEditor{})
 	}
 
 	if err := ui.setResponseView(g, splitX.Current(), 0, maxX-1, splitY.Current()); err != nil {
@@ -153,7 +159,7 @@ func (ui *UI) setResponseView(g *gocui.Gui, x0, y0, x1, y1 int) error {
 
 		v.Title = "Status"
 		v.Editable = true
-		v.Editor = &statusEditor{defaultEditor}
+		v.Editor = newEditor(ui, g, &numberEditor{3})
 		fmt.Fprintf(v, "%d", ui.resp.Status)
 	}
 
@@ -164,7 +170,7 @@ func (ui *UI) setResponseView(g *gocui.Gui, x0, y0, x1, y1 int) error {
 
 		v.Title = "Delay (ms) "
 		v.Editable = true
-		v.Editor = defaultEditor
+		v.Editor = newEditor(ui, g, &numberEditor{9})
 		fmt.Fprintf(v, "%d", ui.resp.Delay/time.Millisecond)
 	}
 
@@ -173,7 +179,7 @@ func (ui *UI) setResponseView(g *gocui.Gui, x0, y0, x1, y1 int) error {
 			return err
 		}
 		v.Editable = true
-		v.Editor = defaultEditor
+		v.Editor = newEditor(ui, g, nil)
 		v.Title = "Headers"
 		for key, _ := range ui.resp.Headers {
 			fmt.Fprintf(v, "%s: %s\n", key, ui.resp.Headers.Get(key))
@@ -186,7 +192,7 @@ func (ui *UI) setResponseView(g *gocui.Gui, x0, y0, x1, y1 int) error {
 		}
 		v.Title = "Body"
 		v.Editable = true
-		v.Editor = defaultEditor
+		v.Editor = newEditor(ui, g, nil)
 		fmt.Fprintf(v, "%s", string(ui.resp.Body))
 	}
 

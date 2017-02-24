@@ -26,6 +26,10 @@ func writeBody(buf *bytes.Buffer, req *http.Request) error {
 		return err
 	}
 
+	if len(body) > 0 {
+		buf.WriteRune('\n')
+	}
+
 	if strings.Contains(req.Header.Get("Content-Type"), "application/json") {
 		if err := json.Indent(buf, body, "", "  "); err == nil {
 			return nil
@@ -56,7 +60,6 @@ func DumpRequest(req *http.Request) ([]byte, error) {
 		val := req.Header.Get(key)
 		fmt.Fprintf(buf, "%s: %s\n", withColor(31, key), withColor(32, val))
 	}
-	buf.WriteRune('\n')
 
 	err := writeBody(buf, req)
 	return buf.Bytes(), err
