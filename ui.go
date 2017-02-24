@@ -116,8 +116,11 @@ func (ui *UI) Init(g *gocui.Gui) error {
 	g.Highlight = true
 	g.SelFgColor = gocui.ColorGreen
 
-	ui.Layout(g)
-	ui.bindKeys(g)
+	g.SetManager(ui)
+	if err := ui.bindKeys(g); err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -145,7 +148,10 @@ func (ui *UI) Layout(g *gocui.Gui) error {
 		}
 	}
 
-	ui.setView(g, "status")
+	if v := g.CurrentView(); v == nil {
+		_, err := g.SetCurrentView("status")
+		return err
+	}
 
 	return nil
 }
