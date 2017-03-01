@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
+	"os/user"
 	"time"
 
 	"github.com/jroimartin/gocui"
@@ -28,9 +30,28 @@ func NewHandler(ui *UI, g *gocui.Gui) http.Handler {
 	return http.HandlerFunc(fn)
 }
 
+func defaultConfigPath() string {
+	var path = ".httplab"
+
+	if _, err := os.Stat(path); !os.IsNotExist(err) {
+		return path
+	}
+
+	u, err := user.Current()
+	if err != nil {
+		return path
+	}
+
+	return u.HomeDir + "/" + path
+}
+
 func main() {
 	var port int
+	var config string
+
 	flag.IntVar(&port, "port", 10080, "Specifies the port where HTTPLab will bind to")
+	flag.StringVar(&config, "config", "", "Specifies custom config path.")
+
 	flag.Parse()
 
 	g, err := gocui.NewGui(gocui.Output256)
@@ -39,7 +60,11 @@ func main() {
 	}
 	defer g.Close()
 
-	ui := NewUI()
+	if config == "" {
+		config = defaultConfigPath()
+	}
+
+	ui := NewUI(config)
 	if err := ui.Init(g); err != nil {
 		log.Fatalln(err)
 	}

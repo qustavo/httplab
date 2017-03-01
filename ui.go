@@ -98,9 +98,10 @@ type UI struct {
 	infoTimer    *time.Timer
 	viewIndex    int
 	currentPopup string
+	configPath   string
 }
 
-func NewUI() *UI {
+func NewUI(configPath string) *UI {
 	return &UI{
 		resp: &Response{
 			Status: 200,
@@ -108,7 +109,9 @@ func NewUI() *UI {
 				"X-Server": []string{"HTTPLab"},
 			},
 			Body: []byte("Hello, World"),
-		}}
+		},
+		configPath: configPath,
+	}
 }
 
 func (ui *UI) Init(g *gocui.Gui) error {
@@ -456,7 +459,7 @@ func (ui *UI) toggleBindings(g *gocui.Gui, v *gocui.View) error {
 }
 
 func (ui *UI) toggleResponsesLoader(g *gocui.Gui, v *gocui.View) error {
-	rs, err := LoadResponses()
+	rs, err := LoadResponsesFromPath(ui.configPath)
 	if err != nil {
 		ui.Info(g, err.Error())
 		return nil
@@ -533,7 +536,7 @@ func (ui *UI) saveResponseAs(g *gocui.Gui, v *gocui.View) error {
 		return nil
 	}
 
-	rs, err := LoadResponses()
+	rs, err := LoadResponsesFromPath(ui.configPath)
 	if err != nil {
 		ui.Info(g, "%v", err)
 		return nil
@@ -550,7 +553,7 @@ func (ui *UI) saveResponseAs(g *gocui.Gui, v *gocui.View) error {
 
 	savedAs := strings.Trim(v.Buffer(), " \n")
 	rs[savedAs] = resp
-	if err := rs.Save(); err != nil {
+	if err := rs.SaveResponsesToPath(ui.configPath); err != nil {
 		return err
 	}
 

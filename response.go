@@ -6,21 +6,10 @@ import (
 	"io"
 	"net/http"
 	"os"
-	"os/user"
 	"strconv"
 	"strings"
 	"time"
 )
-
-func defaultConfigPath() string {
-	u, err := user.Current()
-	if err != nil {
-		return ".httplab"
-	}
-
-	path := u.HomeDir + "/.httplab"
-	return path
-}
 
 type Response struct {
 	Status  int
@@ -147,10 +136,6 @@ func (rs Responses) Get(key string) *Response {
 	return rs[key]
 }
 
-func (rs Responses) Save() error {
-	return rs.SaveResponsesToPath(defaultConfigPath())
-}
-
 func (rs Responses) SaveResponsesToPath(path string) error {
 	f, err := openConfigFile(path)
 	if err != nil {
@@ -174,10 +159,6 @@ func (rs Responses) SaveResponsesToFile(f *os.File) error {
 	}
 
 	return nil
-}
-
-func LoadResponses() (Responses, error) {
-	return LoadResponsesFromPath(defaultConfigPath())
 }
 
 func LoadResponsesFromPath(path string) (Responses, error) {
