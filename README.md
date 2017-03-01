@@ -22,6 +22,8 @@ Each release provides pre-built binaries for different architectures, you can do
 ## Help
 ```
 Usage of httplab:
+  -config string
+        Specifies custom config path.
   -port int
         Specifies the port where HTTPLab will bind to (default 10080)
 ```
