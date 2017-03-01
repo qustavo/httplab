@@ -5,7 +5,8 @@ HTTPLabs let you inspect HTTP requests and forge responses.
 
 [![asciicast](https://asciinema.org/a/c613qjyikodunp72ox54irn2j.png)](https://asciinema.org/a/c613qjyikodunp72ox54irn2j)
 
-## Install
+# Install
+### Golang
 ```bash
 go get github.com/gchaincl/httplab
 ```
@@ -15,6 +16,8 @@ go get github.com/gchaincl/httplab
 yaourt httplab
 ```
 
+### Binary distribution
+Each release provides pre-built binaries for different architectures, you can download them here: https://github.com/gchaincl/httplab/releases/latest
 
 ## Help
 ```
