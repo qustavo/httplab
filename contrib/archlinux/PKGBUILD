@@ -15,11 +15,13 @@ source=("$pkgname"::'git+https://github.com/gchaincl/httplab.git')
 md5sums=(SKIP)
 
 build() {
+	cd "$srcdir"
+	export GOPATH="$(dirname $PWD)"
 	cd "$pkgname"
 	go build
 }
 
 package() {
 	cd "$pkgname"
-	install -D -s -m644 httplab "${pkgdir}/usr/bin/httplab"
+	install -Dsm755 httplab "${pkgdir}/usr/bin/httplab"
 }
