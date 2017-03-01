@@ -14,15 +14,9 @@ install=
 source=("$pkgname"::'git+https://github.com/gchaincl/httplab.git')
 md5sums=(SKIP)
 
-prepare() {
-	cd "$pkgname"
-	GOPATH="$srcdir"
-	go get -v -d
-}
-
 build() {
 	cd "$pkgname"
-	go build
+	GOPATH="$(echo $srcdir | sed -e "s|src$||")" go build
 }
 
 package() {
