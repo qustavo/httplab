@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/jroimartin/gocui"
@@ -99,6 +100,10 @@ type UI struct {
 	viewIndex    int
 	currentPopup string
 	configPath   string
+
+	reqLock        sync.Mutex
+	requests       [][]byte
+	currentRequest int
 }
 
 func NewUI(configPath string) *UI {
@@ -124,6 +129,37 @@ func (ui *UI) Init(g *gocui.Gui) error {
 		return err
 	}
 
+	return nil
+}
+
+func (ui *UI) AddRequest(g *gocui.Gui, req *http.Request) error {
+	ui.reqLock.Lock()
+	defer ui.reqLock.Unlock()
+
+	ui.Info(g, "New Request from "+req.Host)
+	buf, err := DumpRequest(req)
+	if err != nil {
+		return err
+	}
+
+	if ui.currentRequest == len(ui.requests)-1 {
+		ui.currentRequest = ui.currentRequest + 1
+	}
+
+	ui.requests = append(ui.requests, buf)
+	return ui.updateRequest(g)
+}
+
+func (ui *UI) updateRequest(g *gocui.Gui) error {
+	req := ui.requests[ui.currentRequest]
+
+	view, err := g.View("request")
+	if err != nil {
+		return err
+	}
+
+	view.Title = fmt.Sprintf("Request (%d/%d)", ui.currentRequest+1, len(ui.requests))
+	ui.Display(g, "request", req)
 	return nil
 }
 
@@ -272,6 +308,14 @@ func (ui *UI) bindKeys(g *gocui.Gui) error {
 		return err
 	}
 
+	if err := g.SetKeybinding("", gocui.KeyPgup, gocui.ModNone, ui.prevRequest); err != nil {
+		return err
+	}
+
+	if err := g.SetKeybinding("", gocui.KeyPgdn, gocui.ModNone, ui.nextRequest); err != nil {
+		return err
+	}
+
 	for _, view := range []string{"bindings", "responses"} {
 		if err := g.SetKeybinding(view, 'q', gocui.ModNone, ui.quitPopup); err != nil {
 			return err
@@ -305,6 +349,30 @@ func (ui *UI) nextView(g *gocui.Gui, _ *gocui.View) error {
 func (ui *UI) prevView(g *gocui.Gui, cur *gocui.View) error {
 	ui.viewIndex = (ui.viewIndex - 1 + len(cicleable)) % len(cicleable)
 	return ui.setView(g, cicleable[ui.viewIndex])
+}
+
+func (ui *UI) prevRequest(g *gocui.Gui, v *gocui.View) error {
+	ui.reqLock.Lock()
+	defer ui.reqLock.Unlock()
+
+	if ui.currentRequest == 0 {
+		return nil
+	}
+
+	ui.currentRequest = ui.currentRequest - 1
+	return ui.updateRequest(g)
+}
+
+func (ui *UI) nextRequest(g *gocui.Gui, v *gocui.View) error {
+	ui.reqLock.Lock()
+	defer ui.reqLock.Unlock()
+
+	if ui.currentRequest >= len(ui.requests)-1 {
+		return nil
+	}
+
+	ui.currentRequest = ui.currentRequest + 1
+	return ui.updateRequest(g)
 }
 
 func cursorUp(g *gocui.Gui, v *gocui.View) error {
@@ -434,6 +502,8 @@ func (ui *UI) toggleBindings(g *gocui.Gui, v *gocui.View) error {
 	Ctrl+l    : Toggle responses list
 	Ctrl+h    : Toggle Help
 	q         : Close popup
+	PgUp      : Previous Request
+	PgDown    : Next Request
 	Ctrl+c    : Quit
 	`
 
@@ -441,7 +511,7 @@ func (ui *UI) toggleBindings(g *gocui.Gui, v *gocui.View) error {
 		return ui.closePopup(g, "bindings")
 	}
 
-	view, err := ui.createPopupView(g, "bindings", 40, 9)
+	view, err := ui.createPopupView(g, "bindings", 40, strings.Count(info, "\n"))
 	if err != nil {
 		return err
 	}
