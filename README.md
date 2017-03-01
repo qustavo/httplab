@@ -38,6 +38,8 @@ Key                                     | Description
 <kbd>Ctrl+l</kbd>                       | Toggle responses list
 <kbd>Ctrl+h</kbd>                       | Toggle Help
 <kbd>q</kbd>                            | Close popup
+<kbd>PgUp</kbd>                         | Previous Request
+<kbd>PgDown</kbd>                       | Next Request
 <kbd>Ctrl+c</kbd>                       | Quit
 
 _HTTPLab is heavily inspired by [wuzz](https://github.com/asciimoo/wuzz)_

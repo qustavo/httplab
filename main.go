@@ -14,13 +14,9 @@ import (
 
 func NewHandler(ui *UI, g *gocui.Gui) http.Handler {
 	fn := func(w http.ResponseWriter, req *http.Request) {
-		ui.Info(g, "New Request from "+req.Host)
-		buf, err := DumpRequest(req)
-		if err != nil {
+		if err := ui.AddRequest(g, req); err != nil {
 			ui.Info(g, "%v", err)
 		}
-
-		ui.Display(g, "request", buf)
 
 		resp := ui.Response()
 		time.Sleep(resp.Delay)
