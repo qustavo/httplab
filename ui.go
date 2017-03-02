@@ -19,6 +19,19 @@ var cicleable = []string{
 	"request",
 }
 
+var bindingInfo = `
+  Tab       : Next Input
+  Shift+Tab : Previous Input
+  Ctrl+a    : Apply Response changes
+  Ctrl+s    : Save Response as
+  Ctrl+l    : Toggle responses list
+  Ctrl+h    : Toggle Help
+  q         : Close popup
+  PgUp      : Previous Request
+  PgDown    : Next Request
+  Ctrl+c    : Quit
+`
+
 type editor struct {
 	ui            *UI
 	g             *gocui.Gui
@@ -494,24 +507,11 @@ func (ui *UI) closePopup(g *gocui.Gui, viewname string) error {
 	return nil
 }
 func (ui *UI) toggleBindings(g *gocui.Gui, v *gocui.View) error {
-	info := `
-	Tab       : Next Input
-	Shift+Tab : Previous Input
-	Ctrl+a    : Apply Response changes
-	Ctrl+s    : Save Response as
-	Ctrl+l    : Toggle responses list
-	Ctrl+h    : Toggle Help
-	q         : Close popup
-	PgUp      : Previous Request
-	PgDown    : Next Request
-	Ctrl+c    : Quit
-	`
-
 	if ui.currentPopup == "bindings" {
 		return ui.closePopup(g, "bindings")
 	}
 
-	view, err := ui.createPopupView(g, "bindings", 40, strings.Count(info, "\n"))
+	view, err := ui.createPopupView(g, "bindings", 40, strings.Count(bindingInfo, "\n"))
 	if err != nil {
 		return err
 	}
@@ -523,7 +523,7 @@ func (ui *UI) toggleBindings(g *gocui.Gui, v *gocui.View) error {
 
 	g.Cursor = false
 	view.Title = "Bindings"
-	fmt.Fprint(view, info)
+	fmt.Fprint(view, bindingInfo)
 
 	return nil
 }
