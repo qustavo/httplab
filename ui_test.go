@@ -17,7 +17,7 @@ func newTestUI(t *testing.T) (*gocui.Gui, *UI) {
 	require.NoError(t, err)
 
 	ui := NewUI("")
-	ui.Layout(g)
+	require.NoError(t, ui.Layout(g))
 
 	return g, ui
 }
