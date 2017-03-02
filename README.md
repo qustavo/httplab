@@ -1,4 +1,4 @@
-# HTTPLab
+# HTTPLab [![Build Status](https://travis-ci.org/gchaincl/httplab.svg?branch=master)](https://travis-ci.org/gchaincl/httplab)
 An interactive web server.
 
 HTTPLabs let you inspect HTTP requests and forge responses.
