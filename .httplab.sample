@@ -1,0 +1,27 @@
+{
+  "Responses": {
+    "ok": {
+      "Status": 200,
+      "Delay": 0,
+      "Body": "Hello, World",
+      "Headers": {
+        "X-Server": "HTTPLab"
+      }
+    },
+    "create": {
+      "Status": 201,
+      "Delay": 1000,
+      "Body": "{\"created\":\"ok\"}",
+      "Headers": {
+        "Content-Type": "application/json"
+      }
+    },
+    "notfound": {
+      "Status": 404,
+      "Delay": 0,
+      "Body": "Page Not Found",
+      "Headers": {
+      }
+    }
+  }
+}

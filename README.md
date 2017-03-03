@@ -42,4 +42,7 @@ Key                                     | Description
 <kbd>PgDown</kbd>                       | Next Request
 <kbd>Ctrl+c</kbd>                       | Quit
 
+HTTPLab uses file to store pre-built responses, it will look for a file called `.httplab` on the current directory if not found it will fallback to `$HOME`.
+A sample file can be found [here](https://github.com/gchaincl/httplab/blob/master/.httplab.sample).
+
 _HTTPLab is heavily inspired by [wuzz](https://github.com/asciimoo/wuzz)_
