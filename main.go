@@ -44,7 +44,7 @@ func defaultConfigPath() string {
 func usage() {
 	fmt.Fprintf(os.Stderr, "Usage of %s:\n", os.Args[0])
 	flag.PrintDefaults()
-	fmt.Fprintf(os.Stderr, "\nBindings:%s", bindingInfo)
+	fmt.Fprintf(os.Stderr, "\nBindings:\n%s", Bindings.Help())
 }
 
 func main() {
