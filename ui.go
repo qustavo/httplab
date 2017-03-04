@@ -114,7 +114,9 @@ func NewUI(configPath string) *UI {
 			Headers: http.Header{
 				"X-Server": []string{"HTTPLab"},
 			},
-			Body: []byte("Hello, World"),
+			Body: Body{
+				Raw: []byte("Hello, World"),
+			},
 		},
 		configPath: configPath,
 	}
@@ -234,7 +236,7 @@ func (ui *UI) setResponseView(g *gocui.Gui, x0, y0, x1, y1 int) error {
 		v.Title = "Body"
 		v.Editable = true
 		v.Editor = newEditor(ui, g, nil)
-		fmt.Fprintf(v, "%s", string(ui.resp.Body))
+		fmt.Fprintf(v, "%s", string(ui.resp.Body.Payload()))
 	}
 
 	return nil
@@ -371,7 +373,7 @@ func (ui *UI) restoreResponse(g *gocui.Gui, r *Response) {
 
 	v, _ = g.View("body")
 	v.Clear()
-	v.Write(r.Body)
+	v.Write(r.Body.Info())
 
 	ui.Info(g, "Response loaded!")
 	ui.resp = r

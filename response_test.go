@@ -64,14 +64,16 @@ func TestResponseWrite(t *testing.T) {
 		Headers: http.Header{
 			"X-Foo": []string{"bar"},
 		},
-		Body: []byte("Hello, World"),
+		Body: Body{
+			Raw: []byte("Hello, World"),
+		},
 	}
 
 	resp.Write(rec)
 
 	assert.Equal(t, resp.Status, rec.Code)
 	assert.Equal(t, resp.Headers.Get("X-Foo"), rec.Header().Get("X-Foo"))
-	assert.Equal(t, resp.Body, rec.Body.Bytes())
+	assert.Equal(t, resp.Body.Payload(), rec.Body.Bytes())
 }
 
 func TestLoadFromJSON(t *testing.T) {
@@ -83,7 +85,7 @@ func TestLoadFromJSON(t *testing.T) {
 	r := rs["t1"]
 	assert.Equal(t, 200, r.Status)
 	assert.Equal(t, time.Duration(1000), r.Delay)
-	assert.Equal(t, []byte("xxx"), r.Body)
+	assert.Equal(t, []byte("xxx"), r.Body.Payload())
 	assert.Equal(t, "value", r.Headers.Get("X-MyHeader"))
 
 	t.Run("When file is empty", func(t *testing.T) {

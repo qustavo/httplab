@@ -11,10 +11,23 @@ import (
 	"time"
 )
 
+type Body struct {
+	Raw  []byte
+	File *os.File
+}
+
+func (body *Body) Payload() []byte {
+	return body.Raw
+}
+
+func (body *Body) Info() []byte {
+	return body.Raw
+}
+
 type Response struct {
 	Status  int
 	Headers http.Header
-	Body    []byte
+	Body    Body
 	Delay   time.Duration
 }
 
@@ -31,7 +44,7 @@ func (r *Response) UnmarshalJSON(data []byte) error {
 
 	r.Status = v.Status
 	r.Delay = v.Delay
-	r.Body = []byte(v.Body)
+	r.Body.Raw = []byte(v.Body)
 	if r.Headers == nil {
 		r.Headers = http.Header{}
 	}
@@ -54,7 +67,7 @@ func (r *Response) MarshalJSON() ([]byte, error) {
 
 	v.Delay = time.Duration(r.Delay) / time.Millisecond
 	v.Status = r.Status
-	v.Body = string(r.Body)
+	v.Body = string(r.Body.Raw)
 	for key := range r.Headers {
 		v.Headers[key] = r.Headers.Get(key)
 	}
@@ -97,7 +110,9 @@ func NewResponse(status, headers, body string) (*Response, error) {
 	return &Response{
 		Status:  code,
 		Headers: hdr,
-		Body:    []byte(body),
+		Body: Body{
+			Raw: []byte(body),
+		},
 	}, nil
 }
 
@@ -106,7 +121,7 @@ func (r *Response) Write(w http.ResponseWriter) error {
 		w.Header().Set(key, r.Headers.Get(key))
 	}
 	w.WriteHeader(r.Status)
-	_, err := w.Write(r.Body)
+	_, err := w.Write(r.Body.Payload())
 
 	return err
 }
