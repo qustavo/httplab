@@ -43,8 +43,6 @@ func (bs bindings) Apply(ui *UI, g *gocui.Gui) error {
 	return g.SetKeybinding("", gocui.KeyCtrlH, gocui.ModNone, func(g *gocui.Gui, _ *gocui.View) error {
 		return ui.toggleHelp(g, bs.Help())
 	})
-
-	return nil
 }
 
 func (bs bindings) Help() string {

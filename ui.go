@@ -321,19 +321,6 @@ func (ui *UI) nextRequest(g *gocui.Gui) error {
 	return ui.updateRequest(g)
 }
 
-func cursorUp(g *gocui.Gui, v *gocui.View) error {
-	cx, cy := v.Cursor()
-	v.SetCursor(cx, cy-1)
-	return nil
-}
-
-func cursorDown(g *gocui.Gui, v *gocui.View) error {
-	cx, cy := v.Cursor()
-	v.SetCursor(cx, cy+1)
-	return nil
-	return nil
-}
-
 func getViewBuffer(g *gocui.Gui, view string) string {
 	v, err := g.View(view)
 	if err != nil {
@@ -430,30 +417,37 @@ func (ui *UI) closePopup(g *gocui.Gui, viewname string) error {
 
 	g.DeleteView(viewname)
 	g.Cursor = true
+	ui.setView(g, cicleable[ui.viewIndex])
 	ui.currentPopup = ""
-
-	// Set active the popup caller
-	ui.nextView(g)
-	ui.prevView(g)
 
 	return nil
 }
+
+func (ui *UI) openPopup(g *gocui.Gui, viewname string, x, y int) (*gocui.View, error) {
+	view, err := ui.createPopupView(g, viewname, x, y)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := ui.setView(g, view.Name()); err != nil {
+		return nil, err
+	}
+	ui.currentPopup = viewname
+	g.Cursor = false
+
+	return view, nil
+}
+
 func (ui *UI) toggleHelp(g *gocui.Gui, help string) error {
 	if ui.currentPopup == "bindings" {
 		return ui.closePopup(g, "bindings")
 	}
 
-	view, err := ui.createPopupView(g, "bindings", 40, strings.Count(help, "\n"))
+	view, err := ui.openPopup(g, "bindings", 40, strings.Count(help, "\n"))
 	if err != nil {
 		return err
 	}
 
-	if err := ui.setView(g, view.Name()); err != nil {
-		return err
-	}
-	ui.currentPopup = "bindings"
-
-	g.Cursor = false
 	view.Title = "Bindings"
 	fmt.Fprint(view, help)
 
@@ -476,12 +470,8 @@ func (ui *UI) toggleResponsesLoader(g *gocui.Gui) error {
 		return ui.closePopup(g, "responses")
 	}
 
-	view, err := ui.createPopupView(g, "responses", 30, len(rs)+1)
+	view, err := ui.openPopup(g, "responses", 30, len(rs)+1)
 	if err != nil {
-		return err
-	}
-
-	if err := ui.setView(g, view.Name()); err != nil {
 		return err
 	}
 
@@ -490,10 +480,9 @@ func (ui *UI) toggleResponsesLoader(g *gocui.Gui) error {
 	}
 
 	view.Title = "Responses"
+	view.Highlight = true
 
 	ui.responses = rs
-	ui.currentPopup = "responses"
-
 	return nil
 }
 
@@ -508,14 +497,14 @@ func (ui *UI) saveResponsePopup(g *gocui.Gui) error {
 		return err
 	}
 
-	popup, err := ui.createPopupView(g, "save", 20, 2)
+	popup, err := ui.openPopup(g, "save", 20, 2)
 	if err != nil {
 		return err
 	}
 
 	popup.Title = "Save as..."
 	popup.Editable = true
-	return ui.setView(g, popup.Name())
+	return nil
 }
 
 func (ui *UI) saveResponseAs(g *gocui.Gui, name string) error {
@@ -539,8 +528,4 @@ func (ui *UI) saveResponseAs(g *gocui.Gui, name string) error {
 
 	ui.Info(g, "Response applied and saved as '%s'", name)
 	return nil
-}
-
-func (ui *UI) quitPopup(g *gocui.Gui, v *gocui.View) error {
-	return ui.closePopup(g, v.Name())
 }
