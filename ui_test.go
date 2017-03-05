@@ -54,15 +54,15 @@ func TestUIScrollRequests(t *testing.T) {
 	}
 
 	cur := ui.currentRequest
-	ui.prevRequest(g, nil)
+	ui.prevRequest(g)
 	assert.Equal(t, ui.currentRequest, cur-1)
 
-	ui.nextRequest(g, nil)
+	ui.nextRequest(g)
 	assert.Equal(t, ui.currentRequest, cur)
 
 	t.Run("Doesn't autoscroll", func(t *testing.T) {
 		req, _ := http.NewRequest("GET", "/", &bytes.Buffer{})
-		ui.prevRequest(g, nil)
+		ui.prevRequest(g)
 		cur := ui.currentRequest
 
 		ui.AddRequest(g, req)
