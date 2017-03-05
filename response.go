@@ -1,9 +1,11 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"net/http"
 	"os"
 	"strconv"
@@ -11,17 +13,65 @@ import (
 	"time"
 )
 
+// BodyMode represent the current Body mode
+type BodyMode uint
+
+func (m BodyMode) String() string {
+	switch m {
+	case BodyInput:
+		return "Input"
+	case BodyFile:
+		return "File"
+	}
+	return ""
+}
+
+const (
+	BodyInput BodyMode = iota + 1
+	BodyFile
+)
+
 type Body struct {
-	Raw  []byte
-	File *os.File
+	Mode  BodyMode
+	Input []byte
+	File  *os.File
 }
 
 func (body *Body) Payload() []byte {
-	return body.Raw
+	switch body.Mode {
+	case BodyInput:
+		return body.Input
+	case BodyFile:
+		if body.File == nil {
+			return nil
+		}
+
+		// XXX: Handle this error
+		bytes, _ := ioutil.ReadAll(body.File)
+		body.File.Seek(0, 0)
+		return bytes
+	}
+	return nil
 }
 
 func (body *Body) Info() []byte {
-	return body.Raw
+	switch body.Mode {
+	case BodyInput:
+		return body.Input
+	case BodyFile:
+		if body.File == nil {
+			return nil
+		}
+
+		// XXX: Handle this error
+		stats, _ := body.File.Stat()
+		w := &bytes.Buffer{}
+		fmt.Fprintf(w, "file: %s\n", body.File.Name())
+		fmt.Fprintf(w, "size: %d bytes\n", stats.Size())
+		fmt.Fprintf(w, "perm: %s\n", stats.Mode())
+		return w.Bytes()
+	}
+	return nil
 }
 
 type Response struct {
@@ -36,6 +86,7 @@ func (r *Response) UnmarshalJSON(data []byte) error {
 	v := struct {
 		alias
 		Body    string
+		File    string
 		Headers map[string]string
 	}{}
 	if err := json.Unmarshal(data, &v); err != nil {
@@ -44,7 +95,21 @@ func (r *Response) UnmarshalJSON(data []byte) error {
 
 	r.Status = v.Status
 	r.Delay = v.Delay
-	r.Body.Raw = []byte(v.Body)
+	r.Body.Input = []byte(v.Body)
+	if v.File != "" {
+		file, err := os.Open(v.File)
+		if err != nil {
+			return err
+		}
+		r.Body.File = file
+	}
+
+	if r.Body.File != nil {
+		r.Body.Mode = BodyFile
+	} else {
+		r.Body.Mode = BodyInput
+	}
+
 	if r.Headers == nil {
 		r.Headers = http.Header{}
 	}
@@ -60,6 +125,7 @@ func (r *Response) MarshalJSON() ([]byte, error) {
 	v := struct {
 		alias
 		Body    string
+		File    string
 		Headers map[string]string
 	}{
 		Headers: make(map[string]string),
@@ -67,7 +133,15 @@ func (r *Response) MarshalJSON() ([]byte, error) {
 
 	v.Delay = time.Duration(r.Delay) / time.Millisecond
 	v.Status = r.Status
-	v.Body = string(r.Body.Raw)
+
+	if len(r.Body.Input) > 0 {
+		v.Body = string(r.Body.Input)
+	}
+
+	if r.Body.File != nil {
+		v.File = r.Body.File.Name()
+	}
+
 	for key := range r.Headers {
 		v.Headers[key] = r.Headers.Get(key)
 	}
@@ -111,7 +185,7 @@ func NewResponse(status, headers, body string) (*Response, error) {
 		Status:  code,
 		Headers: hdr,
 		Body: Body{
-			Raw: []byte(body),
+			Input: []byte(body),
 		},
 	}, nil
 }
@@ -157,6 +231,15 @@ func (rs Responses) SaveResponsesToPath(path string) error {
 		return err
 	}
 	defer f.Close()
+
+	stat, err := f.Stat()
+	if err != nil {
+		return err
+	}
+
+	if err := f.Truncate(stat.Size()); err != nil {
+		return err
+	}
 
 	return rs.SaveResponsesToFile(f)
 }

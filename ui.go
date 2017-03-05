@@ -115,7 +115,8 @@ func NewUI(configPath string) *UI {
 				"X-Server": []string{"HTTPLab"},
 			},
 			Body: Body{
-				Raw: []byte("Hello, World"),
+				Mode:  BodyInput,
+				Input: []byte("Hello, World"),
 			},
 		},
 		configPath: configPath,
@@ -233,10 +234,9 @@ func (ui *UI) setResponseView(g *gocui.Gui, x0, y0, x1, y1 int) error {
 		if err != gocui.ErrUnknownView {
 			return err
 		}
-		v.Title = "Body"
 		v.Editable = true
 		v.Editor = newEditor(ui, g, nil)
-		fmt.Fprintf(v, "%s", string(ui.resp.Body.Payload()))
+		ui.renderBody(g)
 	}
 
 	return nil
@@ -326,12 +326,13 @@ func getViewBuffer(g *gocui.Gui, view string) string {
 func (ui *UI) currentResponse(g *gocui.Gui) (*Response, error) {
 	status := getViewBuffer(g, "status")
 	headers := getViewBuffer(g, "headers")
-	body := getViewBuffer(g, "body")
 
-	resp, err := NewResponse(status, headers, body)
+	resp, err := NewResponse(status, headers, "")
 	if err != nil {
 		return nil, err
 	}
+
+	resp.Body = ui.resp.Body
 
 	delay := getViewBuffer(g, "delay")
 	delay = strings.Trim(delay, " \n")
@@ -355,8 +356,9 @@ func (ui *UI) updateResponse(g *gocui.Gui) error {
 }
 
 func (ui *UI) restoreResponse(g *gocui.Gui, r *Response) {
-	var v *gocui.View
+	ui.resp = r
 
+	var v *gocui.View
 	v, _ = g.View("status")
 	v.Clear()
 	fmt.Fprintf(v, "%d", r.Status)
@@ -371,12 +373,9 @@ func (ui *UI) restoreResponse(g *gocui.Gui, r *Response) {
 		fmt.Fprintf(v, "%s: %s", key, r.Headers.Get(key))
 	}
 
-	v, _ = g.View("body")
-	v.Clear()
-	v.Write(r.Body.Info())
+	ui.renderBody(g)
 
 	ui.Info(g, "Response loaded!")
-	ui.resp = r
 }
 
 func (ui *UI) setView(g *gocui.Gui, view string) error {
@@ -544,4 +543,25 @@ func (ui *UI) saveResponseAs(g *gocui.Gui, name string) error {
 
 	ui.Info(g, "Response applied and saved as '%s'", name)
 	return nil
+}
+
+func (ui *UI) renderBody(g *gocui.Gui) error {
+	v, err := g.View("body")
+	if err != nil {
+		return err
+	}
+
+	body := ui.resp.Body
+
+	v.Title = fmt.Sprintf("Body (%s)", body.Mode)
+	v.Clear()
+	v.Write(body.Info())
+	return nil
+}
+
+func (ui *UI) nextBodyMode(g *gocui.Gui) error {
+	modes := []BodyMode{BodyInput, BodyFile}
+	body := &ui.resp.Body
+	body.Mode = body.Mode%BodyMode(len(modes)) + 1
+	return ui.renderBody(g)
 }

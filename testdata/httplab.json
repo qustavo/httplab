@@ -6,7 +6,8 @@
 			"Headers": {
 				"X-MyHeader": "value"
 			},
-			"Body": "xxx"
+			"Body": "xxx",
+			"File": "./testdata/index.html"
 		}
 	}
 }

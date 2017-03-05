@@ -65,7 +65,7 @@ func TestResponseWrite(t *testing.T) {
 			"X-Foo": []string{"bar"},
 		},
 		Body: Body{
-			Raw: []byte("Hello, World"),
+			Input: []byte("Hello, World"),
 		},
 	}
 
@@ -85,10 +85,16 @@ func TestLoadFromJSON(t *testing.T) {
 	r := rs["t1"]
 	assert.Equal(t, 200, r.Status)
 	assert.Equal(t, time.Duration(1000), r.Delay)
-	assert.Equal(t, []byte("xxx"), r.Body.Payload())
 	assert.Equal(t, "value", r.Headers.Get("X-MyHeader"))
 
-	t.Run("When file is empty", func(t *testing.T) {
+	r.Body.Mode = BodyInput
+	assert.Equal(t, []byte("xxx"), r.Body.Payload())
+	assert.Equal(t, []byte("xxx"), r.Body.Info())
+
+	r.Body.Mode = BodyFile
+	assert.Equal(t, []byte("<html></html>"), r.Body.Payload())
+
+	t.Run("When config file is empty", func(t *testing.T) {
 		path := time.Now().Format(time.UnixDate)
 		defer os.Remove(path)
 
