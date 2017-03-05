@@ -1,0 +1,9 @@
+## v0.1.0 (2017-03-02)
+* Parameterized config file.
+  * Use the -config flag to specify a custom config file.
+  * By default, lookup for `.httplab` on the current dir, if not found fallback to `$HOME/.httplab`.
+* Request Scrolling.
+* Display bindings when invoked with -h|help.
+
+## v0.0.1 (2017-02-08)
+First Release
