@@ -3,7 +3,6 @@ package main
 import (
 	"bytes"
 	"fmt"
-	"strings"
 	"text/tabwriter"
 
 	"github.com/jroimartin/gocui"
@@ -74,8 +73,6 @@ var Bindings = &bindings{
 	// Bindings not displayed by help
 	{gocui.KeyArrowUp, "", "", []string{"responses"}, onCursorUp},
 	{gocui.KeyArrowDown, "", "", []string{"responses"}, onCursorDown},
-	{gocui.KeyEnter, "", "", []string{"responses"}, onSelectResponse},
-	{gocui.KeyEnter, "", "", []string{"save"}, onSaveResponseName},
 }
 
 func onNextView(ui *UI) ActionFn {
@@ -146,33 +143,6 @@ func onCursorDown(ui *UI) ActionFn {
 	return func(g *gocui.Gui, v *gocui.View) error {
 		cx, cy := v.Cursor()
 		v.SetCursor(cx, cy+1)
-		return nil
-	}
-}
-
-func onSelectResponse(ui *UI) ActionFn {
-	return func(g *gocui.Gui, v *gocui.View) error {
-		_, y := v.Cursor()
-		line, err := v.Line(y)
-		if err != nil {
-			return err
-		}
-
-		ui.selectResponse(g, line)
-		return nil
-	}
-}
-
-func onSaveResponseName(ui *UI) ActionFn {
-	return func(g *gocui.Gui, v *gocui.View) error {
-		defer func() {
-			ui.closePopup(g, "save")
-		}()
-
-		name := strings.Trim(v.Buffer(), " \n")
-		if err := ui.saveResponseAs(g, name); err != nil {
-			ui.Info(g, "%v", err)
-		}
 		return nil
 	}
 }

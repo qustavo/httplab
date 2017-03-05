@@ -457,17 +457,32 @@ func (ui *UI) toggleResponsesLoader(g *gocui.Gui) error {
 		return errors.New("No responses has been saved")
 	}
 
-	view, err := ui.openPopup(g, "responses", 30, len(rs)+1)
+	popup, err := ui.openPopup(g, "responses", 30, len(rs)+1)
 	if err != nil {
 		return err
 	}
 
-	for key := range rs {
-		fmt.Fprintf(view, "%s\n", rs.String(key))
+	onEnter := func(g *gocui.Gui, v *gocui.View) error {
+		_, y := v.Cursor()
+		line, err := v.Line(y)
+		if err != nil {
+			return err
+		}
+
+		ui.selectResponse(g, line)
+		return nil
 	}
 
-	view.Title = "Responses"
-	view.Highlight = true
+	if err := g.SetKeybinding(popup.Name(), gocui.KeyEnter, gocui.ModNone, onEnter); err != nil {
+		return err
+	}
+
+	for key := range rs {
+		fmt.Fprintf(popup, "%s\n", rs.String(key))
+	}
+
+	popup.Title = "Responses"
+	popup.Highlight = true
 
 	ui.responses = rs
 	return nil
@@ -486,6 +501,18 @@ func (ui *UI) saveResponsePopup(g *gocui.Gui) error {
 
 	popup, err := ui.openPopup(g, "save", 20, 2)
 	if err != nil {
+		return err
+	}
+
+	onEnter := func(g *gocui.Gui, v *gocui.View) error {
+		name := strings.Trim(v.Buffer(), " \n")
+		if err := ui.saveResponseAs(g, name); err != nil {
+			ui.Info(g, "%v", err)
+		}
+		return ui.closePopup(g, "save")
+	}
+
+	if err := g.SetKeybinding(popup.Name(), gocui.KeyEnter, gocui.ModNone, onEnter); err != nil {
 		return err
 	}
 
