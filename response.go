@@ -35,7 +35,7 @@ func (r *Response) UnmarshalJSON(data []byte) error {
 	if r.Headers == nil {
 		r.Headers = http.Header{}
 	}
-	for key, _ := range v.Headers {
+	for key := range v.Headers {
 		r.Headers.Set(key, v.Headers[key])
 	}
 
@@ -55,7 +55,7 @@ func (r *Response) MarshalJSON() ([]byte, error) {
 	v.Delay = time.Duration(r.Delay) / time.Millisecond
 	v.Status = r.Status
 	v.Body = string(r.Body)
-	for key, _ := range r.Headers {
+	for key := range r.Headers {
 		v.Headers[key] = r.Headers.Get(key)
 	}
 
@@ -102,7 +102,7 @@ func NewResponse(status, headers, body string) (*Response, error) {
 }
 
 func (r *Response) Write(w http.ResponseWriter) error {
-	for key, _ := range r.Headers {
+	for key := range r.Headers {
 		w.Header().Set(key, r.Headers.Get(key))
 	}
 	w.WriteHeader(r.Status)

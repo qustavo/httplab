@@ -99,7 +99,10 @@ func onSaveResponseAs(ui *UI) ActionFn {
 
 func onToggleResponsesList(ui *UI) ActionFn {
 	return func(g *gocui.Gui, v *gocui.View) error {
-		return ui.toggleResponsesLoader(g)
+		if err := ui.toggleResponsesLoader(g); err != nil {
+			ui.Info(g, err.Error())
+		}
+		return nil
 	}
 }
 

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 	"strconv"
@@ -125,10 +126,6 @@ func (ui *UI) Init(g *gocui.Gui) error {
 	g.SelFgColor = gocui.ColorGreen
 
 	g.SetManager(ui)
-	if err := ui.bindKeys(g); err != nil {
-		return err
-	}
-
 	return Bindings.Apply(ui, g)
 }
 
@@ -159,8 +156,7 @@ func (ui *UI) updateRequest(g *gocui.Gui) error {
 	}
 
 	view.Title = fmt.Sprintf("Request (%d/%d)", ui.currentRequest+1, len(ui.requests))
-	ui.Display(g, "request", req)
-	return nil
+	return ui.Display(g, "request", req)
 }
 
 func (ui *UI) Layout(g *gocui.Gui) error {
@@ -226,7 +222,7 @@ func (ui *UI) setResponseView(g *gocui.Gui, x0, y0, x1, y1 int) error {
 		v.Editable = true
 		v.Editor = newEditor(ui, g, nil)
 		v.Title = "Headers"
-		for key, _ := range ui.resp.Headers {
+		for key := range ui.resp.Headers {
 			fmt.Fprintf(v, "%s: %s\n", key, ui.resp.Headers.Get(key))
 		}
 	}
@@ -281,10 +277,6 @@ func (ui *UI) Display(g *gocui.Gui, view string, bytes []byte) error {
 
 func (ui *UI) Response() *Response {
 	return ui.resp
-}
-
-func (ui *UI) bindKeys(g *gocui.Gui) error {
-	return nil
 }
 
 func (ui *UI) nextView(g *gocui.Gui) error {
@@ -374,7 +366,7 @@ func (ui *UI) restoreResponse(g *gocui.Gui, r *Response) {
 
 	v, _ = g.View("headers")
 	v.Clear()
-	for key, _ := range r.Headers {
+	for key := range r.Headers {
 		fmt.Fprintf(v, "%s: %s", key, r.Headers.Get(key))
 	}
 
@@ -417,10 +409,8 @@ func (ui *UI) closePopup(g *gocui.Gui, viewname string) error {
 
 	g.DeleteView(viewname)
 	g.Cursor = true
-	ui.setView(g, cicleable[ui.viewIndex])
 	ui.currentPopup = ""
-
-	return nil
+	return ui.setView(g, cicleable[ui.viewIndex])
 }
 
 func (ui *UI) openPopup(g *gocui.Gui, viewname string, x, y int) (*gocui.View, error) {
@@ -455,19 +445,17 @@ func (ui *UI) toggleHelp(g *gocui.Gui, help string) error {
 }
 
 func (ui *UI) toggleResponsesLoader(g *gocui.Gui) error {
+	if ui.currentPopup == "responses" {
+		return ui.closePopup(g, "responses")
+	}
+
 	rs, err := LoadResponsesFromPath(ui.configPath)
 	if err != nil {
-		ui.Info(g, err.Error())
-		return nil
+		return err
 	}
 
 	if len(rs) == 0 {
-		ui.Info(g, "No responses has been saved")
-		return nil
-	}
-
-	if ui.currentPopup == "responses" {
-		return ui.closePopup(g, "responses")
+		return errors.New("No responses has been saved")
 	}
 
 	view, err := ui.openPopup(g, "responses", 30, len(rs)+1)
@@ -475,7 +463,7 @@ func (ui *UI) toggleResponsesLoader(g *gocui.Gui) error {
 		return err
 	}
 
-	for key, _ := range rs {
+	for key := range rs {
 		fmt.Fprintf(view, "%s\n", rs.String(key))
 	}
 

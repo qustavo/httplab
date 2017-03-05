@@ -56,7 +56,7 @@ func DumpRequest(req *http.Request) ([]byte, error) {
 		req.ProtoMinor,
 	)
 
-	for key, _ := range req.Header {
+	for key := range req.Header {
 		val := req.Header.Get(key)
 		fmt.Fprintf(buf, "%s: %s\n", withColor(31, key), withColor(32, val))
 	}
