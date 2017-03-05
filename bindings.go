@@ -65,6 +65,7 @@ var Bindings = &bindings{
 	{gocui.KeyCtrlA, "Ctrl+a", "Update Response", nil, onUpdateResponse},
 	{gocui.KeyCtrlS, "Ctrl+s", "Save Response as", nil, onSaveResponseAs},
 	{gocui.KeyCtrlL, "Ctrl+l", "Toggle Responses list", nil, onToggleResponsesList},
+	{gocui.KeyCtrlO, "Ctrl+o", "Open Body file...", nil, onOpenFile},
 	{gocui.KeyCtrlB, "Ctrl+b", "Switch Body mode", nil, onSwitchBodyMode},
 	{'q', "q", "Close Popup", []string{"bindings", "responses"}, onClosePopup},
 	{gocui.KeyPgup, "PgUp", "Previous Request", nil, onPrevRequest},
@@ -105,6 +106,12 @@ func onToggleResponsesList(ui *UI) ActionFn {
 			ui.Info(g, err.Error())
 		}
 		return nil
+	}
+}
+
+func onOpenFile(ui *UI) ActionFn {
+	return func(g *gocui.Gui, v *gocui.View) error {
+		return ui.openBodyFilePopup(g)
 	}
 }
 

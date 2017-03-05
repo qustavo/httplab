@@ -74,6 +74,17 @@ func (body *Body) Info() []byte {
 	return nil
 }
 
+func (body *Body) SetFile(path string) error {
+	file, err := os.Open(path)
+	if err != nil {
+		return err
+	}
+
+	body.File = file
+	body.Mode = BodyFile
+	return nil
+}
+
 type Response struct {
 	Status  int
 	Headers http.Header

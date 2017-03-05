@@ -559,6 +559,39 @@ func (ui *UI) renderBody(g *gocui.Gui) error {
 	return nil
 }
 
+func (ui *UI) openBodyFilePopup(g *gocui.Gui) error {
+	if err := ui.closePopup(g, ui.currentPopup); err != nil {
+		return err
+	}
+
+	popup, err := ui.openPopup(g, "bodyfile", 20, 2)
+	if err != nil {
+		return err
+	}
+
+	g.Cursor = true
+	popup.Title = "Open Body File"
+	popup.Editable = true
+
+	onEnter := func(g *gocui.Gui, v *gocui.View) error {
+		path := strings.Trim(v.Buffer(), " \n")
+		if err := ui.resp.Body.SetFile(path); err != nil {
+			ui.Info(g, "%+v", err)
+		} else {
+			if err := ui.renderBody(g); err != nil {
+				return err
+			}
+		}
+		return ui.closePopup(g, popup.Name())
+	}
+
+	if err := g.SetKeybinding(popup.Name(), gocui.KeyEnter, gocui.ModNone, onEnter); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (ui *UI) nextBodyMode(g *gocui.Gui) error {
 	modes := []BodyMode{BodyInput, BodyFile}
 	body := &ui.resp.Body

@@ -38,6 +38,8 @@ Key                                     | Description
 <kbd>Ctrl+a</kbd>                       | Apply Response changes
 <kbd>Ctrl+s</kbd>                       | Save Response as
 <kbd>Ctrl+l</kbd>                       | Toggle responses list
+<kbd>Ctrl+o</kbd>                       | Open Body file
+<kbd>Ctrl+b</kbd>                       | Switch Body mode
 <kbd>Ctrl+h</kbd>                       | Toggle Help
 <kbd>q</kbd>                            | Close popup
 <kbd>PgUp</kbd>                         | Previous Request

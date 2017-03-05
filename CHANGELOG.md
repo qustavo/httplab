@@ -1,4 +1,5 @@
 ## v0.2.0
+* Implement File Body response
 * UI bug fixes & refactor
 * Add -version flag [@pradeepchhetri]
 
