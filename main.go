@@ -12,6 +12,8 @@ import (
 	"github.com/jroimartin/gocui"
 )
 
+const VERSION = "v0.1.0"
+
 func NewHandler(ui *UI, g *gocui.Gui) http.Handler {
 	fn := func(w http.ResponseWriter, req *http.Request) {
 		if err := ui.AddRequest(g, req); err != nil {
@@ -47,15 +49,26 @@ func usage() {
 	fmt.Fprintf(os.Stderr, "\nBindings:\n%s", Bindings.Help())
 }
 
+func Version() {
+	fmt.Fprintf(os.Stdout, "%s\n", VERSION)
+	os.Exit(0)
+}
+
 func main() {
 	var port int
 	var config string
+	var version bool
 
 	flag.Usage = usage
-	flag.IntVar(&port, "port", 10080, "Specifies the port where HTTPLab will bind to")
+	flag.IntVar(&port, "port", 10080, "Specifies the port where HTTPLab will bind to.")
 	flag.StringVar(&config, "config", "", "Specifies custom config path.")
+	flag.BoolVar(&version, "version", false, "Prints current version.")
 
 	flag.Parse()
+
+	if version {
+		Version()
+	}
 
 	g, err := gocui.NewGui(gocui.Output256)
 	if err != nil {

@@ -25,7 +25,9 @@ Usage of httplab:
   -config string
         Specifies custom config path.
   -port int
-        Specifies the port where HTTPLab will bind to (default 10080)
+        Specifies the port where HTTPLab will bind to. (default 10080)
+  -version
+        Prints current version.
 ```
 
 ### Key Bindings
