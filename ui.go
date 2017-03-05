@@ -342,15 +342,14 @@ func (ui *UI) currentResponse(g *gocui.Gui) (*Response, error) {
 	return resp, nil
 }
 
-func (ui *UI) updateResponse(g *gocui.Gui) {
+func (ui *UI) updateResponse(g *gocui.Gui) error {
 	resp, err := ui.currentResponse(g)
 	if err != nil {
-		ui.Info(g, "%v", err)
-		return
+		return err
 	}
 
 	ui.resp = resp
-	ui.Info(g, "Response updated!")
+	return nil
 }
 
 func (ui *UI) restoreResponse(g *gocui.Gui, r *Response) {
