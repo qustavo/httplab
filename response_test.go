@@ -107,3 +107,29 @@ func TestLoadFromJSON(t *testing.T) {
 		assert.NoError(t, err)
 	})
 }
+
+func TestExpandPathExpansion(t *testing.T) {
+	defer os.Setenv("HOME", os.Getenv("HOME"))
+
+	for key, val := range map[string]string{
+		"HOME": "/home/gchaincl",
+		"ENV1": "env1",
+		"ENV2": "env2",
+	} {
+		os.Setenv(key, val)
+	}
+
+	paths := []struct {
+		expr     string
+		expected string
+	}{
+		{"~/foo", "/home/gchaincl/foo"},
+		{"./foo/~/bar", "./foo/~/bar"},
+		{"/$ENV1/foo/$ENV2", "/env1/foo/env2"},
+		{"$NOTDEFINED/foo", "/foo"},
+	}
+
+	for _, path := range paths {
+		assert.Equal(t, path.expected, ExpandPath(path.expr))
+	}
+}

@@ -75,7 +75,7 @@ func (body *Body) Info() []byte {
 }
 
 func (body *Body) SetFile(path string) error {
-	file, err := os.Open(path)
+	file, err := os.Open(ExpandPath(path))
 	if err != nil {
 		return err
 	}
@@ -108,11 +108,9 @@ func (r *Response) UnmarshalJSON(data []byte) error {
 	r.Delay = v.Delay
 	r.Body.Input = []byte(v.Body)
 	if v.File != "" {
-		file, err := os.Open(v.File)
-		if err != nil {
+		if err := r.Body.SetFile(v.File); err != nil {
 			return err
 		}
-		r.Body.File = file
 	}
 
 	if r.Body.File != nil {
@@ -292,6 +290,13 @@ func LoadResponsesFromFile(f *os.File) (Responses, error) {
 	}
 
 	return r.Responses, nil
+}
+
+func ExpandPath(path string) string {
+	if path[0] == '~' {
+		path = "$HOME" + path[1:len(path)]
+	}
+	return os.ExpandEnv(path)
 }
 
 func openConfigFile(path string) (*os.File, error) {
