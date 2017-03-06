@@ -333,6 +333,9 @@ func (ui *UI) currentResponse(g *gocui.Gui) (*Response, error) {
 	}
 
 	resp.Body = ui.resp.Body
+	if ui.Response().Body.Mode == BodyInput {
+		resp.Body.Input = []byte(getViewBuffer(g, "body"))
+	}
 
 	delay := getViewBuffer(g, "delay")
 	delay = strings.Trim(delay, " \n")
