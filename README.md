@@ -3,7 +3,7 @@ An interactive web server.
 
 HTTPLabs let you inspect HTTP requests and forge responses.
 
-[![asciicast](https://asciinema.org/a/c613qjyikodunp72ox54irn2j.png)](https://asciinema.org/a/c613qjyikodunp72ox54irn2j)
+![screencast](images/screencast.gif)
 
 # Install
 ### Golang
