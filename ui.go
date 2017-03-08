@@ -108,12 +108,13 @@ func (e *numberEditor) Edit(v *gocui.View, key gocui.Key, ch rune, mod gocui.Mod
 }
 
 type UI struct {
-	resp         *Response
-	responses    Responses
-	infoTimer    *time.Timer
-	viewIndex    int
-	currentPopup string
-	configPath   string
+	resp                *Response
+	responses           Responses
+	infoTimer           *time.Timer
+	viewIndex           int
+	currentPopup        string
+	configPath          string
+	hideResponseBuilder bool
 
 	reqLock        sync.Mutex
 	requests       [][]byte
@@ -177,8 +178,14 @@ func (ui *UI) updateRequest(g *gocui.Gui) error {
 
 func (ui *UI) Layout(g *gocui.Gui) error {
 	maxX, maxY := g.Size()
-	splitX := NewSplit(maxX).Relative(70)
-	splitY := NewSplit(maxY).Fixed(maxY - 4)
+
+	var splitX, splitY *Split
+	if ui.hideResponseBuilder {
+		splitX = NewSplit(maxX).Fixed(maxX - 1)
+	} else {
+		splitX = NewSplit(maxX).Relative(70)
+	}
+	splitY = NewSplit(maxY).Fixed(maxY - 4)
 
 	if v, err := g.SetView(REQUEST_VIEW, 0, 0, splitX.Next(), splitY.Next()); err != nil {
 		if err != gocui.ErrUnknownView {
@@ -201,13 +208,23 @@ func (ui *UI) Layout(g *gocui.Gui) error {
 
 	if v := g.CurrentView(); v == nil {
 		_, err := g.SetCurrentView(STATUS_VIEW)
-		return err
+		if err != gocui.ErrUnknownView {
+			return err
+		}
 	}
 
 	return nil
 }
 
 func (ui *UI) setResponseView(g *gocui.Gui, x0, y0, x1, y1 int) error {
+	if ui.hideResponseBuilder {
+		g.DeleteView(STATUS_VIEW)
+		g.DeleteView(DELAY_VIEW)
+		g.DeleteView(HEADERS_VIEW)
+		g.DeleteView(BODY_VIEW)
+		return nil
+	}
+
 	split := NewSplit(y1).Fixed(2, 3).Relative(40)
 	if v, err := g.SetView(STATUS_VIEW, x0, y0, x1, split.Next()); err != nil {
 		if err != gocui.ErrUnknownView {
@@ -295,11 +312,17 @@ func (ui *UI) Response() *Response {
 }
 
 func (ui *UI) nextView(g *gocui.Gui) error {
+	if ui.hideResponseBuilder {
+		return nil
+	}
 	ui.viewIndex = (ui.viewIndex + 1) % len(cicleable)
 	return ui.setView(g, cicleable[ui.viewIndex])
 }
 
 func (ui *UI) prevView(g *gocui.Gui) error {
+	if ui.hideResponseBuilder {
+		return nil
+	}
 	ui.viewIndex = (ui.viewIndex - 1 + len(cicleable)) % len(cicleable)
 	return ui.setView(g, cicleable[ui.viewIndex])
 }
@@ -502,6 +525,15 @@ func (ui *UI) toggleResponsesLoader(g *gocui.Gui) error {
 	popup.Highlight = true
 
 	ui.responses = rs
+	return nil
+}
+
+func (ui *UI) toggleResponseBuilder(g *gocui.Gui) error {
+	ui.hideResponseBuilder = !ui.hideResponseBuilder
+	if ui.hideResponseBuilder {
+		_, err := g.SetCurrentView(REQUEST_VIEW)
+		return err
+	}
 	return nil
 }
 
