@@ -82,7 +82,8 @@ func main() {
 
 	ui := NewUI(config)
 	if err := ui.Init(g); err != nil {
-		log.Fatalln(err)
+		log.Println(err)
+		return
 	}
 
 	http.Handle("/", NewHandler(ui, g))
@@ -92,11 +93,13 @@ func main() {
 
 		ui.Info(g, "Listening on :%d", port)
 		if err := http.ListenAndServe(fmt.Sprintf(":%d", port), nil); err != nil {
-			log.Fatalln(err)
+			log.Println(err)
+			return
 		}
 	}()
 
 	if err := g.MainLoop(); err != nil && err != gocui.ErrQuit {
-		log.Fatalln(err)
+		log.Println(err)
+		return
 	}
 }
