@@ -1,0 +1,22 @@
+name: httplab
+version: '0.1.0+git'
+summary: An interactive web server
+description: |
+  HTTPLabs let you inspect HTTP requests and forge responses.
+
+grade: stable
+confinement: strict
+
+apps:
+  httplab:
+    command: httplab
+    plugs:
+      - network
+      - network-bind
+
+parts:
+  httplab:
+    plugin: go
+    source: ../../
+    source-type: git
+    go-importpath: github.com/gchaincl/httplab
