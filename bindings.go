@@ -63,6 +63,7 @@ var Bindings = &bindings{
 	{gocui.KeyTab, "Tab", "Next Input", nil, onNextView},
 	{0xFF, "Shift+Tab", "Previous Input", nil, nil}, // only to display on help
 	{gocui.KeyCtrlA, "Ctrl+a", "Update Response", nil, onUpdateResponse},
+	{gocui.KeyCtrlR, "Ctrl+r", "Reset Request history", nil, onResetRequests},
 	{gocui.KeyCtrlS, "Ctrl+s", "Save Response as", nil, onSaveResponseAs},
 	{gocui.KeyCtrlL, "Ctrl+l", "Toggle Responses list", nil, onToggleResponsesList},
 	{gocui.KeyCtrlT, "Ctrl+t", "Toggle Response builder", nil, onToggleResponseBuilder},
@@ -92,6 +93,12 @@ func onUpdateResponse(ui *UI) ActionFn {
 			ui.Info(g, "Response updated!")
 		}
 		return nil
+	}
+}
+
+func onResetRequests(ui *UI) ActionFn {
+	return func(g *gocui.Gui, v *gocui.View) error {
+		return ui.resetRequests(g)
 	}
 }
 

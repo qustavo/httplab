@@ -176,6 +176,23 @@ func (ui *UI) updateRequest(g *gocui.Gui) error {
 	return ui.Display(g, REQUEST_VIEW, req)
 }
 
+func (ui *UI) resetRequests(g *gocui.Gui) error {
+	ui.reqLock.Lock()
+	defer ui.reqLock.Unlock()
+	ui.requests = nil
+	ui.currentRequest = 0
+
+	v, err := g.View(REQUEST_VIEW)
+	if err != nil {
+		return err
+	}
+
+	v.Title = "Request"
+	v.Clear()
+	ui.Info(g, "Requests cleared")
+	return nil
+}
+
 func (ui *UI) Layout(g *gocui.Gui) error {
 	maxX, maxY := g.Size()
 

@@ -1,4 +1,5 @@
 ## v0.2.0
+* Ctrl+R reset/clears the request history
 * Toggle response builder
 * Expand body's file path
 * Implement File Body response
