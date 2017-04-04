@@ -36,6 +36,7 @@ Key                                     | Description
 <kbd>Tab</kbd>                          | Next Input
 <kbd>Shift+Tab</kbd>                    | Previous Input
 <kbd>Ctrl+a</kbd>                       | Apply Response changes
+<kbd>Ctrl+r</kbd>                       | Resets Request history
 <kbd>Ctrl+s</kbd>                       | Save Response as
 <kbd>Ctrl+l</kbd>                       | Toggle responses list
 <kbd>Ctrl+o</kbd>                       | Open Body file
