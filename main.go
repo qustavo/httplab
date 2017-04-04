@@ -12,7 +12,7 @@ import (
 	"github.com/jroimartin/gocui"
 )
 
-const VERSION = "v0.1.0"
+const VERSION = "v0.2.0"
 
 func NewHandler(ui *UI, g *gocui.Gui) http.Handler {
 	fn := func(w http.ResponseWriter, req *http.Request) {
