@@ -296,8 +296,11 @@ func (ui *UI) Info(g *gocui.Gui, format string, args ...interface{}) {
 		return
 	}
 
-	v.Clear()
-	fmt.Fprintf(v, format, args...)
+	g.Execute(func(g *gocui.Gui) error {
+		v.Clear()
+		_, err := fmt.Fprintf(v, format, args...)
+		return err
+	})
 
 	if ui.infoTimer != nil {
 		ui.infoTimer.Stop()
