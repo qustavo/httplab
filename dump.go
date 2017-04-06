@@ -31,7 +31,10 @@ func writeBody(buf *bytes.Buffer, req *http.Request) error {
 			return err
 		}
 
-		gz.Read(body)
+		_, err = gz.Read(body)
+		if err != nil {
+			return err
+		}
 		defer gz.Close()
 
 		body, err = ioutil.ReadAll(gz)
