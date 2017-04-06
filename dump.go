@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"compress/gzip"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -21,9 +22,27 @@ func withColor(color int, text string) string {
 }
 
 func writeBody(buf *bytes.Buffer, req *http.Request) error {
-	body, err := ioutil.ReadAll(req.Body)
-	if err != nil {
-		return err
+	var body []byte
+	var err error
+
+	if strings.Contains(req.Header.Get("Accept-Encoding"), "gzip") {
+		gz, err := gzip.NewReader(req.Body)
+		if err != nil {
+			return err
+		}
+
+		gz.Read(body)
+		defer gz.Close()
+
+		body, err = ioutil.ReadAll(gz)
+		if err != nil {
+			return err
+		}
+	} else {
+		body, err = ioutil.ReadAll(req.Body)
+		if err != nil {
+			return err
+		}
 	}
 
 	if len(body) > 0 {
