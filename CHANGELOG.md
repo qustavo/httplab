@@ -1,3 +1,6 @@
+## v0.2.1
+* [fix] Open File dialog bugs
+
 ## v0.2.0
 * Ctrl+R reset/clears the request history
 * Toggle response builder
