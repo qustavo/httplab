@@ -2,8 +2,10 @@ package httplab
 
 import (
 	"bytes"
+	"compress/gzip"
 	"fmt"
 	"net/http"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -30,6 +32,25 @@ func TestDumpRequestWithJSON(t *testing.T) {
 		))
 		req.Header.Set("Content-Type", "application/json")
 
+	t.Run("Gzip", func(t *testing.T) {
+		var buf bytes.Buffer
+		gz := gzip.NewWriter(&buf)
+		gz.Write([]byte(`{"foo": "bar", "a": [1,2,3]}`))
+		gz.Close()
+
+		gzipRequest := req
+		gzipRequest.Header.Set("Accept-Encoding", "gzip")
+
+		body.WriteString(buf.String())
+		b, err := DumpRequest(gzipRequest)
+		fmt.Println(string(b))
+		assert.True(t, strings.Contains(string(b), `"foo": "bar"`))
+		assert.NoError(t, err)
+	})
+
+	t.Run("Invalid", func(t *testing.T) {
+		body.Reset()
+		body.WriteString(`some invalid json`)
 		buf, err := DumpRequest(req)
 		require.NoError(t, err)
 		fmt.Printf("%s\n", buf)
