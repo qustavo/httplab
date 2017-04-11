@@ -1,4 +1,7 @@
-## v0.2.0
+## v0.2.1 (2017-06-04)
+* [fix] Open File dialog bugs
+
+## v0.2.0 (2017-04-04)
 * Ctrl+R reset/clears the request history
 * Toggle response builder
 * Expand body's file path

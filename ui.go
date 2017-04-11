@@ -13,16 +13,17 @@ import (
 )
 
 const (
-	STATUS_VIEW    = "status"
-	DELAY_VIEW     = "delay"
-	HEADERS_VIEW   = "headers"
-	BODY_VIEW      = "body"
-	REQUEST_VIEW   = "request"
-	INFO_VIEW      = "info"
-	BODYFILE_VIEW  = "bodyfile"
-	SAVE_VIEW      = "save"
-	RESPONSES_VIEW = "responses"
-	BINDINGS_VIEW  = "bindings"
+	STATUS_VIEW      = "status"
+	DELAY_VIEW       = "delay"
+	HEADERS_VIEW     = "headers"
+	BODY_VIEW        = "body"
+	REQUEST_VIEW     = "request"
+	INFO_VIEW        = "info"
+	BODYFILE_VIEW    = "bodyfile"
+	SAVE_VIEW        = "save"
+	RESPONSES_VIEW   = "responses"
+	BINDINGS_VIEW    = "bindings"
+	FILE_DIALOG_VIEW = "file-dialog"
 )
 
 var cicleable = []string{
@@ -295,8 +296,11 @@ func (ui *UI) Info(g *gocui.Gui, format string, args ...interface{}) {
 		return
 	}
 
-	v.Clear()
-	fmt.Fprintf(v, format, args...)
+	g.Execute(func(g *gocui.Gui) error {
+		v.Clear()
+		_, err := fmt.Fprintf(v, format, args...)
+		return err
+	})
 
 	if ui.infoTimer != nil {
 		ui.infoTimer.Stop()
@@ -629,7 +633,7 @@ func (ui *UI) openBodyFilePopup(g *gocui.Gui) error {
 		return err
 	}
 
-	popup, err := ui.openPopup(g, BODY_VIEW, 20, 2)
+	popup, err := ui.openPopup(g, FILE_DIALOG_VIEW, 20, 2)
 	if err != nil {
 		return err
 	}
@@ -640,6 +644,10 @@ func (ui *UI) openBodyFilePopup(g *gocui.Gui) error {
 
 	onEnter := func(g *gocui.Gui, v *gocui.View) error {
 		path := strings.Trim(v.Buffer(), " \n")
+		if path == "" {
+			return ui.closePopup(g, popup.Name())
+		}
+
 		if err := ui.resp.Body.SetFile(path); err != nil {
 			ui.Info(g, "%+v", err)
 		} else {
