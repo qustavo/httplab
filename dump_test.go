@@ -1,5 +1,3 @@
-// +build visualtest
-
 package main
 
 import (
@@ -8,28 +6,29 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestDumpRequestWithJSON(t *testing.T) {
-	body := bytes.NewBuffer(nil)
-	req, _ := http.NewRequest("GET", "/foo", body)
-	req.Header.Set("X-Server", "HTTPLab")
-	req.Header.Set("Content-Type", "application/json")
+	t.Run("should be indented", func(t *testing.T) {
+		req, _ := http.NewRequest("GET", "/withJSON", bytes.NewBuffer(
+			[]byte(`{"foo": "bar", "a": [1,2,3]}`),
+		))
+		req.Header.Set("Content-Type", "application/json")
 
-	t.Run("Valid", func(t *testing.T) {
-		body.WriteString(`{"foo": "bar", "a": [1,2,3]}`)
 		buf, err := DumpRequest(req)
-		fmt.Println(string(buf))
-		assert.NoError(t, err)
+		require.NoError(t, err)
+		fmt.Printf("%s\n", buf)
 	})
 
-	t.Run("Invalid", func(t *testing.T) {
-		body.Reset()
-		body.WriteString(`some invalid json`)
-		buf, err := DumpRequest(req)
-		fmt.Println(string(buf))
-		assert.NoError(t, err)
-	})
+	t.Run("should be displayed as is", func(t *testing.T) {
+		req, _ := http.NewRequest("GET", "/invalidJSON", bytes.NewBuffer(
+			[]byte(`invalid json`),
+		))
+		req.Header.Set("Content-Type", "application/json")
 
+		buf, err := DumpRequest(req)
+		require.NoError(t, err)
+		fmt.Printf("%s\n", buf)
+	})
 }
