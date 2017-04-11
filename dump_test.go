@@ -32,28 +32,42 @@ func TestDumpRequestWithJSON(t *testing.T) {
 		))
 		req.Header.Set("Content-Type", "application/json")
 
+		buf, err := DumpRequest(req)
+		require.NoError(t, err)
+		t.Logf("%s\n", buf)
+	})
+
 	t.Run("Gzip", func(t *testing.T) {
-		var buf bytes.Buffer
-		gz := gzip.NewWriter(&buf)
+		var gzbuf bytes.Buffer
+		gz := gzip.NewWriter(&gzbuf)
 		gz.Write([]byte(`{"foo": "bar", "a": [1,2,3]}`))
 		gz.Close()
+
+		req, _ := http.NewRequest("GET", "/withJSON", &gzbuf)
+		req.Header.Set("Content-Type", "application/json")
 
 		gzipRequest := req
 		gzipRequest.Header.Set("Accept-Encoding", "gzip")
 
-		body.WriteString(buf.String())
-		b, err := DumpRequest(gzipRequest)
-		fmt.Println(string(b))
-		assert.True(t, strings.Contains(string(b), `"foo": "bar"`))
-		assert.NoError(t, err)
+		buf, err := DumpRequest(gzipRequest)
+		require.NoError(t, err)
+		require.True(t, strings.Contains(string(buf), `"foo": "bar"`))
+		t.Logf("%s\n", buf)
 	})
 
-	t.Run("Invalid", func(t *testing.T) {
-		body.Reset()
-		body.WriteString(`some invalid json`)
-		buf, err := DumpRequest(req)
+	t.Run("Invalid Gzip", func(t *testing.T) {
+		req, _ := http.NewRequest("GET", "/withJSON", bytes.NewBuffer(
+			[]byte(`This is not a gzip`),
+		))
+		req.Header.Set("Content-Type", "application/json")
+
+		gzipRequest := req
+		gzipRequest.Header.Set("Accept-Encoding", "gzip")
+
+		buf, err := DumpRequest(gzipRequest)
+		require.True(t, strings.Contains(string(buf), `This is not a gzip`))
 		require.NoError(t, err)
-		fmt.Printf("%s\n", buf)
+		t.Logf("%s\n", buf)
 	})
 }
 

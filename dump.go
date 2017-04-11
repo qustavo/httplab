@@ -29,31 +29,37 @@ func withColor(color int, text string) string {
 	return fmt.Sprintf("\x1b[0;%dm%s\x1b[0;0m", color, text)
 }
 
-func writeBody(buf *bytes.Buffer, req *http.Request) error {
-	var body []byte
-	var err error
+func parseGzip(req *http.Request) ([]byte, error) {
+	buf, err := ioutil.ReadAll(req.Body)
+	if err != nil {
+		return nil, err
+	}
 
-	if strings.Contains(req.Header.Get("Accept-Encoding"), "gzip") {
-		gz, err := gzip.NewReader(req.Body)
-		if err != nil {
-			return err
-		}
+	if !strings.Contains(req.Header.Get("Accept-Encoding"), "gzip") {
+		return buf, nil
+	}
 
-		_, err = gz.Read(body)
-		if err != nil {
-			return err
-		}
+	gzipBuf := bytes.NewBuffer(buf)
+	gz, err := gzip.NewReader(gzipBuf)
+	if gz != nil {
 		defer gz.Close()
+	}
 
-		body, err = ioutil.ReadAll(gz)
-		if err != nil {
-			return err
-		}
+	if err != nil {
+		return buf, nil
+	}
+
+	if gzbuf, err := ioutil.ReadAll(gz); err != nil {
+		return buf, nil
 	} else {
-		body, err = ioutil.ReadAll(req.Body)
-		if err != nil {
-			return err
-		}
+		return gzbuf, nil
+	}
+}
+
+func writeBody(buf *bytes.Buffer, req *http.Request) error {
+	body, err := parseGzip(req)
+	if err != nil {
+		return err
 	}
 
 	if len(body) > 0 {
