@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/jroimartin/gocui"
+    "github.com/zchee/go-xdgbasedir"
 )
 
 const VERSION = "v0.2.1"
@@ -29,18 +30,23 @@ func NewHandler(ui *UI, g *gocui.Gui) http.Handler {
 }
 
 func defaultConfigPath() string {
-	var path = ".httplab"
+    var configFilename = "httplab"
+    var dotConfigFilename = "." + configFilename
 
-	if _, err := os.Stat(path); !os.IsNotExist(err) {
-		return path
+    if _, err := os.Stat(xdgbasedir.ConfigHome()); !os.IsNotExist(err) {
+        return xdgbasedir.ConfigHome() + "/" + configFilename
+    }
+
+	if _, err := os.Stat(dotConfigFilename); !os.IsNotExist(err) {
+		return dotConfigFilename
 	}
 
 	u, err := user.Current()
 	if err != nil {
-		return path
+		return dotConfigFilename
 	}
 
-	return u.HomeDir + "/" + path
+	return u.HomeDir + "/" + dotConfigFilename
 }
 
 func usage() {
