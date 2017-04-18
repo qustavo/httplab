@@ -8,7 +8,7 @@ HTTPLabs let you inspect HTTP requests and forge responses.
 # Install
 ### Golang
 ```bash
-go get github.com/gchaincl/httplab
+go install github.com/gchaincl/httplab/cmd/httplab
 ```
 
 ### Archlinux
