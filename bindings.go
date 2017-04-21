@@ -65,6 +65,7 @@ var Bindings = &bindings{
 	{gocui.KeyCtrlA, "Ctrl+a", "Update Response", nil, onUpdateResponse},
 	{gocui.KeyCtrlR, "Ctrl+r", "Reset Request history", nil, onResetRequests},
 	{gocui.KeyCtrlS, "Ctrl+s", "Save Response as", nil, onSaveResponseAs},
+	{gocui.KeyCtrlF, "Ctrl+f", "Save Request as", nil, onSaveRequestAs},
 	{gocui.KeyCtrlL, "Ctrl+l", "Toggle Responses list", nil, onToggleResponsesList},
 	{gocui.KeyCtrlT, "Ctrl+t", "Toggle Response builder", nil, onToggleResponseBuilder},
 	{gocui.KeyCtrlO, "Ctrl+o", "Open Body file...", nil, onOpenFile},
@@ -105,6 +106,12 @@ func onResetRequests(ui *UI) ActionFn {
 func onSaveResponseAs(ui *UI) ActionFn {
 	return func(g *gocui.Gui, v *gocui.View) error {
 		return ui.saveResponsePopup(g)
+	}
+}
+
+func onSaveRequestAs(ui *UI) ActionFn {
+	return func(g *gocui.Gui, v *gocui.View) error {
+		return ui.saveRequestPopup(g)
 	}
 }
 
