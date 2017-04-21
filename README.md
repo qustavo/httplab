@@ -38,6 +38,7 @@ Key                                     | Description
 <kbd>Ctrl+a</kbd>                       | Apply Response changes
 <kbd>Ctrl+r</kbd>                       | Resets Request history
 <kbd>Ctrl+s</kbd>                       | Save Response as
+<kbd>Ctrl+f</kbd>                       | Save Request as
 <kbd>Ctrl+l</kbd>                       | Toggle Responses list
 <kbd>Ctrl+t</kbd>                       | Toggle Response builder
 <kbd>Ctrl+o</kbd>                       | Open Body file
