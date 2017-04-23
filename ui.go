@@ -659,7 +659,7 @@ func (ui *UI) saveRequestAs(g *gocui.Gui, name string) error {
 	}
 	defer file.Close()
 
-	if _, err := file.Write(req); err != nil {
+	if _, err := file.Write(Decolorize(req)); err != nil {
 		return err
 	}
 
