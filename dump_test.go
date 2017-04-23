@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -31,4 +32,12 @@ func TestDumpRequestWithJSON(t *testing.T) {
 		require.NoError(t, err)
 		fmt.Printf("%s\n", buf)
 	})
+}
+
+func TestDecolorization(t *testing.T) {
+	for i, _ := range [107]struct{}{} {
+		text := "Some Text"
+		nocolor := Decolorize([]byte(withColor(i, text)))
+		assert.Equal(t, text, string(nocolor))
+	}
 }
