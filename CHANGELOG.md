@@ -1,4 +1,5 @@
 ## v0.3.0
+* [fix] Truncate .http file before saving
 * [fix] startup error handling
 * Split cmd and lib
 

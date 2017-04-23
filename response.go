@@ -261,6 +261,15 @@ func (rs Responses) SaveResponsesToFile(f *os.File) error {
 		return err
 	}
 
+	stats, err := f.Stat()
+	if err != nil {
+		return err
+	}
+
+	if err := f.Truncate(stats.Size()); err != nil {
+		return err
+	}
+
 	if _, err := f.Write(buf); err != nil {
 		return err
 	}
