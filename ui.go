@@ -138,13 +138,25 @@ func NewUI(configPath string) *UI {
 	}
 }
 
-func (ui *UI) Init(g *gocui.Gui) error {
+func (ui *UI) Init(g *gocui.Gui) (chan<- error, error) {
 	g.Cursor = true
 	g.Highlight = true
 	g.SelFgColor = gocui.ColorGreen
 
 	g.SetManager(ui)
-	return Bindings.Apply(ui, g)
+	if err := Bindings.Apply(ui, g); err != nil {
+		return nil, err
+	}
+
+	errCh := make(chan error)
+	go func() {
+		err := <-errCh
+		g.Execute(func(g *gocui.Gui) error {
+			return err
+		})
+	}()
+
+	return errCh, nil
 }
 
 func (ui *UI) AddRequest(g *gocui.Gui, req *http.Request) error {

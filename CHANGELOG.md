@@ -1,4 +1,5 @@
 ## v0.3.0
+* [fix] startup error handling
 * Split cmd and lib
 
 ## v0.2.1 (2017-06-04)
