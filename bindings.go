@@ -73,10 +73,6 @@ var Bindings = &bindings{
 	{gocui.KeyPgup, "PgUp", "Previous Request", nil, onPrevRequest},
 	{gocui.KeyPgdn, "PgDown", "Next Request", nil, onNextRequest},
 	{gocui.KeyCtrlC, "Ctrl+c", "Quit", nil, onQuit},
-
-	// Bindings not displayed by help
-	{gocui.KeyArrowUp, "", "", []string{"responses"}, onCursorUp},
-	{gocui.KeyArrowDown, "", "", []string{"responses"}, onCursorDown},
 }
 
 func onNextView(ui *UI) ActionFn {
@@ -162,18 +158,14 @@ func onQuit(ui *UI) ActionFn {
 	}
 }
 
-func onCursorUp(ui *UI) ActionFn {
-	return func(g *gocui.Gui, v *gocui.View) error {
-		cx, cy := v.Cursor()
-		v.SetCursor(cx, cy-1)
-		return nil
-	}
+func onCursorUp(g *gocui.Gui, v *gocui.View) error {
+	cx, cy := v.Cursor()
+	v.SetCursor(cx, cy-1)
+	return nil
 }
 
-func onCursorDown(ui *UI) ActionFn {
-	return func(g *gocui.Gui, v *gocui.View) error {
-		cx, cy := v.Cursor()
-		v.SetCursor(cx, cy+1)
-		return nil
-	}
+func onCursorDown(g *gocui.Gui, v *gocui.View) error {
+	cx, cy := v.Cursor()
+	v.SetCursor(cx, cy+1)
+	return nil
 }

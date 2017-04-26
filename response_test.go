@@ -76,13 +76,68 @@ func TestResponseWrite(t *testing.T) {
 	assert.Equal(t, resp.Body.Payload(), rec.Body.Bytes())
 }
 
+func TestResponsesList(t *testing.T) {
+	rl := NewResponsesList()
+	rl.Add("200", &Response{Status: 200}).
+		Add("201", &Response{Status: 201}).
+		Add("404", &Response{Status: 404}).
+		Add("500", &Response{Status: 500})
+
+	t.Run("Len()", func(t *testing.T) {
+		assert.Equal(t, 4, rl.Len())
+	})
+
+	t.Run("Get()", func(t *testing.T) {
+		assert.Equal(t, 200, rl.Get("200").Status)
+		assert.Equal(t, 201, rl.Get("201").Status)
+		assert.Equal(t, 404, rl.Get("404").Status)
+		assert.Equal(t, 500, rl.Get("500").Status)
+	})
+
+	t.Run("Indexing", func(t *testing.T) {
+		assert.Equal(t, 200, rl.Cur().Status)
+		assert.Equal(t, 0, rl.Index())
+
+		rl.Next()
+		assert.Equal(t, 201, rl.Cur().Status)
+		assert.Equal(t, 1, rl.Index())
+
+		rl.Next()
+		assert.Equal(t, 404, rl.Cur().Status)
+		assert.Equal(t, 2, rl.Index())
+
+		rl.Next()
+		assert.Equal(t, 500, rl.Cur().Status)
+		assert.Equal(t, 3, rl.Index())
+
+		rl.Next()
+		assert.Equal(t, 200, rl.Cur().Status)
+		assert.Equal(t, 0, rl.Index())
+
+		rl.Prev()
+		assert.Equal(t, 500, rl.Cur().Status)
+		assert.Equal(t, 3, rl.Index())
+
+		rl.Prev()
+		assert.Equal(t, 404, rl.Cur().Status)
+		assert.Equal(t, 2, rl.Index())
+	})
+
+	t.Run("Del()", func(t *testing.T) {
+		for _, status := range []string{"200", "201", "404", "500"} {
+			assert.NotNil(t, rl.Get(status))
+			rl.Del(status)
+			assert.Nil(t, rl.Get(status))
+		}
+	})
+}
+
 func TestLoadFromJSON(t *testing.T) {
-	rs, err := LoadResponsesFromPath("./testdata/httplab.json")
-	require.NoError(t, err)
+	rl := NewResponsesList()
+	require.NoError(t, rl.Load("./testdata/httplab.json"))
 
-	require.Contains(t, rs, "t1")
-
-	r := rs["t1"]
+	r := rl.Get("t1")
+	require.NotNil(t, r)
 	assert.Equal(t, 200, r.Status)
 	assert.Equal(t, time.Duration(1000), r.Delay)
 	assert.Equal(t, "value", r.Headers.Get("X-MyHeader"))
@@ -98,12 +153,11 @@ func TestLoadFromJSON(t *testing.T) {
 		path := time.Now().Format(time.UnixDate)
 		defer os.Remove(path)
 
-		rs, err := LoadResponsesFromPath(path)
-		require.NoError(t, err)
-		assert.Len(t, rs, 0)
+		require.NoError(t, rl.Load(path))
+		assert.Equal(t, 0, rl.Len())
 
 		// file has to be created
-		_, err = os.Stat(path)
+		_, err := os.Stat(path)
 		assert.NoError(t, err)
 	})
 }

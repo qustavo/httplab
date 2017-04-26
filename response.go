@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -209,32 +210,61 @@ func (r *Response) Write(w http.ResponseWriter) error {
 	return err
 }
 
-type Responses map[string]*Response
+type ResponsesList struct {
+	List    map[string]*Response
+	keys    []string
+	current int
+}
 
-func (rs Responses) String(key string) string {
-	r := rs.Get(key)
-	if r == nil {
-		return ""
+func NewResponsesList() *ResponsesList {
+	return (&ResponsesList{}).reset()
+}
+
+func (rl *ResponsesList) reset() *ResponsesList {
+	rl.current = 0
+	rl.List = make(map[string]*Response)
+	rl.keys = nil
+	return rl
+}
+
+func (rl *ResponsesList) load(path string) (map[string]*Response, error) {
+	f, err := openConfigFile(path)
+	if err != nil {
+		return nil, err
 	}
 
-	return fmt.Sprintf("%s > %d", key, r.Status)
-}
+	rs := struct {
+		Responses map[string]*Response
+	}{}
 
-func (rs Responses) FromString(s string) *Response {
-	split := strings.Split(s, ">")
-	if len(split) < 2 {
-		return nil
+	if err := json.NewDecoder(f).Decode(&rs); err != nil {
+		if err == io.EOF {
+			return nil, nil
+		}
+		return nil, err
 	}
 
-	key := strings.Trim(split[0], " ")
-	return rs.Get(key)
+	return rs.Responses, nil
 }
 
-func (rs Responses) Get(key string) *Response {
-	return rs[key]
+func (rl *ResponsesList) Load(path string) error {
+	rs, err := rl.load(path)
+	if err != nil {
+		return err
+	}
+
+	rl.reset()
+
+	for key, _ := range rs {
+		rl.keys = append(rl.keys, key)
+	}
+	sort.Strings(rl.keys)
+
+	rl.List = rs
+	return nil
 }
 
-func (rs Responses) SaveResponsesToPath(path string) error {
+func (rl *ResponsesList) Save(path string) error {
 	f, err := openConfigFile(path)
 	if err != nil {
 		return err
@@ -250,23 +280,10 @@ func (rs Responses) SaveResponsesToPath(path string) error {
 		return err
 	}
 
-	return rs.SaveResponsesToFile(f)
-}
-
-func (rs Responses) SaveResponsesToFile(f *os.File) error {
 	buf, err := json.MarshalIndent(struct {
-		Responses Responses
-	}{rs}, "", "  ")
+		Responses map[string]*Response
+	}{rl.List}, "", "  ")
 	if err != nil {
-		return err
-	}
-
-	stats, err := f.Stat()
-	if err != nil {
-		return err
-	}
-
-	if err := f.Truncate(stats.Size()); err != nil {
 		return err
 	}
 
@@ -277,28 +294,30 @@ func (rs Responses) SaveResponsesToFile(f *os.File) error {
 	return nil
 }
 
-func LoadResponsesFromPath(path string) (Responses, error) {
-	f, err := openConfigFile(path)
-	if err != nil {
-		return nil, err
-	}
-
-	return LoadResponsesFromFile(f)
+func (rl *ResponsesList) Next()                    { rl.current = (rl.current + 1) % len(rl.keys) }
+func (rl *ResponsesList) Prev()                    { rl.current = (rl.current - 1 + len(rl.keys)) % len(rl.keys) }
+func (rl *ResponsesList) Cur() *Response           { return rl.List[rl.keys[rl.current]] }
+func (rl *ResponsesList) Index() int               { return rl.current }
+func (rl *ResponsesList) Len() int                 { return len(rl.keys) }
+func (rl *ResponsesList) Keys() []string           { return rl.keys }
+func (rl *ResponsesList) Get(key string) *Response { return rl.List[key] }
+func (rl *ResponsesList) Add(key string, r *Response) *ResponsesList {
+	rl.keys = append(rl.keys, key)
+	sort.Strings(rl.keys)
+	rl.List[key] = r
+	return rl
 }
 
-func LoadResponsesFromFile(f *os.File) (Responses, error) {
-	r := struct {
-		Responses Responses
-	}{}
-
-	if err := json.NewDecoder(f).Decode(&r); err != nil {
-		if err == io.EOF {
-			return nil, nil
-		}
-		return nil, err
+func (rl *ResponsesList) Del(key string) bool {
+	if _, ok := rl.List[key]; !ok {
+		return false
 	}
+	delete(rl.List, key)
 
-	return r.Responses, nil
+	i := sort.SearchStrings(rl.keys, key)
+	rl.keys = append(rl.keys[:i], rl.keys[i+1:]...)
+
+	return true
 }
 
 func ExpandPath(path string) string {
