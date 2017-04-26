@@ -1,6 +1,6 @@
 //+build ui
 
-package httplab
+package ui
 
 import (
 	"bytes"

@@ -1,4 +1,5 @@
 ## v0.3.0
+* Make ui a package
 * Responses can be deleted with 'd'
 * [fix] Truncate .http file before saving
 * [fix] startup error handling

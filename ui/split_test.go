@@ -1,4 +1,4 @@
-package httplab
+package ui
 
 import (
 	"testing"

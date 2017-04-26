@@ -1,4 +1,4 @@
-package httplab
+package ui
 
 import (
 	"errors"
@@ -9,6 +9,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/gchaincl/httplab"
 	"github.com/jroimartin/gocui"
 )
 
@@ -109,8 +110,8 @@ func (e *numberEditor) Edit(v *gocui.View, key gocui.Key, ch rune, mod gocui.Mod
 }
 
 type UI struct {
-	resp                *Response
-	responses           *ResponsesList
+	resp                *httplab.Response
+	responses           *httplab.ResponsesList
 	infoTimer           *time.Timer
 	viewIndex           int
 	currentPopup        string
@@ -122,19 +123,19 @@ type UI struct {
 	currentRequest int
 }
 
-func NewUI(configPath string) *UI {
+func New(configPath string) *UI {
 	return &UI{
-		resp: &Response{
+		resp: &httplab.Response{
 			Status: 200,
 			Headers: http.Header{
 				"X-Server": []string{"HTTPLab"},
 			},
-			Body: Body{
-				Mode:  BodyInput,
+			Body: httplab.Body{
+				Mode:  httplab.BodyInput,
 				Input: []byte("Hello, World"),
 			},
 		},
-		responses:  NewResponsesList(),
+		responses:  httplab.NewResponsesList(),
 		configPath: configPath,
 	}
 }
@@ -165,7 +166,7 @@ func (ui *UI) AddRequest(g *gocui.Gui, req *http.Request) error {
 	defer ui.reqLock.Unlock()
 
 	ui.Info(g, "New Request from "+req.Host)
-	buf, err := DumpRequest(req)
+	buf, err := httplab.DumpRequest(req)
 	if err != nil {
 		return err
 	}
@@ -341,7 +342,7 @@ func (ui *UI) Display(g *gocui.Gui, view string, bytes []byte) error {
 	return nil
 }
 
-func (ui *UI) Response() *Response {
+func (ui *UI) Response() *httplab.Response {
 	return ui.resp
 }
 
@@ -393,17 +394,17 @@ func getViewBuffer(g *gocui.Gui, view string) string {
 	return v.Buffer()
 }
 
-func (ui *UI) currentResponse(g *gocui.Gui) (*Response, error) {
+func (ui *UI) currentResponse(g *gocui.Gui) (*httplab.Response, error) {
 	status := getViewBuffer(g, STATUS_VIEW)
 	headers := getViewBuffer(g, HEADERS_VIEW)
 
-	resp, err := NewResponse(status, headers, "")
+	resp, err := httplab.NewResponse(status, headers, "")
 	if err != nil {
 		return nil, err
 	}
 
 	resp.Body = ui.resp.Body
-	if ui.Response().Body.Mode == BodyInput {
+	if ui.Response().Body.Mode == httplab.BodyInput {
 		resp.Body.Input = []byte(getViewBuffer(g, BODY_VIEW))
 	}
 
@@ -428,7 +429,7 @@ func (ui *UI) updateResponse(g *gocui.Gui) error {
 	return nil
 }
 
-func (ui *UI) restoreResponse(g *gocui.Gui, r *Response) {
+func (ui *UI) restoreResponse(g *gocui.Gui, r *httplab.Response) {
 	ui.resp = r
 
 	var v *gocui.View
@@ -695,8 +696,11 @@ func (ui *UI) openBodyFilePopup(g *gocui.Gui) error {
 }
 
 func (ui *UI) nextBodyMode(g *gocui.Gui) error {
-	modes := []BodyMode{BodyInput, BodyFile}
+	modes := []httplab.BodyMode{
+		httplab.BodyInput,
+		httplab.BodyFile,
+	}
 	body := &ui.resp.Body
-	body.Mode = body.Mode%BodyMode(len(modes)) + 1
+	body.Mode = body.Mode%httplab.BodyMode(len(modes)) + 1
 	return ui.renderBody(g)
 }
