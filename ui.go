@@ -134,7 +134,7 @@ func NewUI(configPath string) *UI {
 				Input: []byte("Hello, World"),
 			},
 		},
-		responses:  &ResponsesList{},
+		responses:  NewResponsesList(),
 		configPath: configPath,
 	}
 }
@@ -550,6 +550,24 @@ func (ui *UI) toggleResponsesLoader(g *gocui.Gui) error {
 		return nil
 	}
 
+	onDelete := func(g *gocui.Gui, v *gocui.View) error {
+		key := ui.responses.Keys()[ui.responses.Index()]
+		ui.responses.Del(key)
+		if err := ui.responses.Save(ui.configPath); err != nil {
+			return err
+		}
+
+		if err := ui.closePopup(g, RESPONSES_VIEW); err != nil {
+			return err
+		}
+
+		if err := ui.toggleResponsesLoader(g); err != nil {
+			return nil
+		}
+
+		return nil
+	}
+
 	onEnter := func(g *gocui.Gui, v *gocui.View) error {
 		ui.restoreResponse(g, ui.responses.Cur())
 		return nil
@@ -561,6 +579,7 @@ func (ui *UI) toggleResponsesLoader(g *gocui.Gui) error {
 
 	g.SetKeybinding(RESPONSES_VIEW, gocui.KeyArrowUp, gocui.ModNone, onUp)
 	g.SetKeybinding(RESPONSES_VIEW, gocui.KeyArrowDown, gocui.ModNone, onDown)
+	g.SetKeybinding(RESPONSES_VIEW, 'd', gocui.ModNone, onDelete)
 	g.SetKeybinding(RESPONSES_VIEW, gocui.KeyEnter, gocui.ModNone, onEnter)
 	g.SetKeybinding(RESPONSES_VIEW, 'q', gocui.ModNone, onQ)
 
