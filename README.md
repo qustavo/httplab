@@ -16,6 +16,12 @@ go install github.com/gchaincl/httplab/cmd/httplab
 yaourt httplab
 ```
 
+### Snap
+On [systems](https://snapcraft.io/docs/core/install) where snap is supported:
+```
+snap install httplab
+```
+
 ### Binary distribution
 Each release provides pre-built binaries for different architectures, you can download them here: https://github.com/gchaincl/httplab/releases/latest
 
