@@ -254,13 +254,15 @@ func (rl *ResponsesList) Load(path string) error {
 	}
 
 	rl.reset()
+	if rs != nil {
+		rl.List = rs
+	}
 
 	for key, _ := range rs {
 		rl.keys = append(rl.keys, key)
 	}
 	sort.Strings(rl.keys)
 
-	rl.List = rs
 	return nil
 }
 

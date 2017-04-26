@@ -463,17 +463,16 @@ func (ui *UI) toggleResponsesLoader(g *gocui.Gui) error {
 		return err
 	}
 
+	cx, _ := g.CurrentView().Cursor()
 	onUp := func(g *gocui.Gui, v *gocui.View) error {
 		ui.responses.Prev()
-		x, _ := v.Cursor()
-		v.SetCursor(x, ui.responses.Index())
+		v.SetCursor(cx, ui.responses.Index())
 		return nil
 	}
 
 	onDown := func(g *gocui.Gui, v *gocui.View) error {
 		ui.responses.Next()
-		x, _ := v.Cursor()
-		v.SetCursor(x, ui.responses.Index())
+		v.SetCursor(cx, ui.responses.Index())
 		return nil
 	}
 
@@ -500,15 +499,18 @@ func (ui *UI) toggleResponsesLoader(g *gocui.Gui) error {
 		return nil
 	}
 
-	onQ := func(g *gocui.Gui, v *gocui.View) error {
+	onQuit := func(g *gocui.Gui, v *gocui.View) error {
 		return ui.closePopup(g, RESPONSES_VIEW)
 	}
 
-	g.SetKeybinding(RESPONSES_VIEW, gocui.KeyArrowUp, gocui.ModNone, onUp)
-	g.SetKeybinding(RESPONSES_VIEW, gocui.KeyArrowDown, gocui.ModNone, onDown)
-	g.SetKeybinding(RESPONSES_VIEW, 'd', gocui.ModNone, onDelete)
-	g.SetKeybinding(RESPONSES_VIEW, gocui.KeyEnter, gocui.ModNone, onEnter)
-	g.SetKeybinding(RESPONSES_VIEW, 'q', gocui.ModNone, onQ)
+	view := []string{popup.Name()}
+	(&bindings{
+		{gocui.KeyArrowUp, "", "", view, func(*UI) ActionFn { return onUp }},
+		{gocui.KeyArrowDown, "", "", view, func(*UI) ActionFn { return onDown }},
+		{gocui.KeyEnter, "", "", view, func(*UI) ActionFn { return onEnter }},
+		{'d', "", "", view, func(*UI) ActionFn { return onDelete }},
+		{'q', "", "", view, func(*UI) ActionFn { return onQuit }},
+	}).Apply(ui, g)
 
 	for _, key := range ui.responses.Keys() {
 		fmt.Fprintf(popup, "%s > %d\n", key, ui.responses.Get(key).Status)
