@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"strings"
+	"io"
 )
 
 func valueOrDefault(value, def string) string {
@@ -21,35 +22,21 @@ func withColor(color int, text string) string {
 	return fmt.Sprintf("\x1b[0;%dm%s\x1b[0;0m", color, text)
 }
 
-func parseGzip(req *http.Request) ([]byte, error) {
-	buf, err := ioutil.ReadAll(req.Body)
-	if err != nil {
-		return nil, err
-	}
-
-	if !strings.Contains(req.Header.Get("Accept-Encoding"), "gzip") {
-		return buf, nil
-	}
-
-	gzipBuf := bytes.NewBuffer(buf)
-	gz, err := gzip.NewReader(gzipBuf)
-	if gz != nil {
-		defer gz.Close()
-	}
-
-	if err != nil {
-		return buf, nil
-	}
-
-	if gzbuf, err := ioutil.ReadAll(gz); err != nil {
-		return buf, nil
-	} else {
-		return gzbuf, nil
-	}
-}
-
 func writeBody(buf *bytes.Buffer, req *http.Request) error {
-	body, err := parseGzip(req)
+	ctype := req.Header.Get("Content-Type")
+
+	// Decoding Gzipped content
+	if strings.Contains(ctype, "gzip") {
+		raw, err := gzip.NewReader(req.Body)
+		if err != nil {
+			return err
+		}
+
+		_, err = io.Copy(buf, raw)
+		return err
+	}
+
+	body, err := ioutil.ReadAll(req.Body)
 	if err != nil {
 		return err
 	}
@@ -58,7 +45,8 @@ func writeBody(buf *bytes.Buffer, req *http.Request) error {
 		buf.WriteRune('\n')
 	}
 
-	if strings.Contains(req.Header.Get("Content-Type"), "application/json") {
+	// JSON stuff
+	if strings.Contains(ctype, "application/json") {
 		if err := json.Indent(buf, body, "", "  "); err == nil {
 			return nil
 		}
