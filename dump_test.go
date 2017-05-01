@@ -44,12 +44,9 @@ func TestDumpRequestWithJSON(t *testing.T) {
 		gz.Close()
 
 		req, _ := http.NewRequest("GET", "/withJSON", &gzbuf)
-		req.Header.Set("Content-Type", "application/json")
+		req.Header.Set("Content-Type", "gzip")
 
-		gzipRequest := req
-		gzipRequest.Header.Set("Accept-Encoding", "gzip")
-
-		buf, err := DumpRequest(gzipRequest)
+		buf, err := DumpRequest(req)
 		require.NoError(t, err)
 		require.True(t, strings.Contains(string(buf), `"foo": "bar"`))
 		t.Logf("%s\n", buf)
@@ -59,14 +56,10 @@ func TestDumpRequestWithJSON(t *testing.T) {
 		req, _ := http.NewRequest("GET", "/withJSON", bytes.NewBuffer(
 			[]byte(`This is not a gzip`),
 		))
-		req.Header.Set("Content-Type", "application/json")
+		req.Header.Set("Content-Type", "gzip")
 
-		gzipRequest := req
-		gzipRequest.Header.Set("Accept-Encoding", "gzip")
-
-		buf, err := DumpRequest(gzipRequest)
-		require.True(t, strings.Contains(string(buf), `This is not a gzip`))
-		require.NoError(t, err)
+		buf, err := DumpRequest(req)
+		require.Error(t, err)
 		t.Logf("%s\n", buf)
 	})
 }
