@@ -1,4 +1,4 @@
-package main
+package httplab
 
 import (
 	"bytes"
@@ -7,6 +7,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -58,4 +59,12 @@ func TestDumpRequestWithJSON(t *testing.T) {
 		require.Error(t, err)
 		t.Logf("%s\n", buf)
 	})
+}
+
+func TestDecolorization(t *testing.T) {
+	for i, _ := range [107]struct{}{} {
+		text := "Some Text"
+		nocolor := Decolorize([]byte(withColor(i, text)))
+		assert.Equal(t, text, string(nocolor))
+	}
 }

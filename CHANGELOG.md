@@ -1,3 +1,7 @@
+## v0.3.0
+* Add ability to save a request to file
+* Split cmd and lib
+
 ## v0.2.1 (2017-06-04)
 * [fix] Open File dialog bugs
 

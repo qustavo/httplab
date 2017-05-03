@@ -8,12 +8,18 @@ HTTPLabs let you inspect HTTP requests and forge responses.
 # Install
 ### Golang
 ```bash
-go get github.com/gchaincl/httplab
+go install github.com/gchaincl/httplab/cmd/httplab
 ```
 
 ### Archlinux
 ```
 yaourt httplab
+```
+
+### Snap
+On [systems](https://snapcraft.io/docs/core/install) where snap is supported:
+```
+snap install httplab
 ```
 
 ### Binary distribution
@@ -38,7 +44,9 @@ Key                                     | Description
 <kbd>Ctrl+a</kbd>                       | Apply Response changes
 <kbd>Ctrl+r</kbd>                       | Resets Request history
 <kbd>Ctrl+s</kbd>                       | Save Response as
-<kbd>Ctrl+l</kbd>                       | Toggle responses list
+<kbd>Ctrl+f</kbd>                       | Save Request as
+<kbd>Ctrl+l</kbd>                       | Toggle Responses list
+<kbd>Ctrl+t</kbd>                       | Toggle Response builder
 <kbd>Ctrl+o</kbd>                       | Open Body file
 <kbd>Ctrl+b</kbd>                       | Switch Body mode
 <kbd>Ctrl+h</kbd>                       | Toggle Help

@@ -1,29 +1,21 @@
 # Maintainer: Gustavo Chain <gchain@gmail.com>
 pkgname=httplab
-pkgver=0.1
-pkgrel=1
+pkgver=0.2.1
+pkgrel=2
 pkgdesc="An interactive web server"
-arch=(any)
+arch=(x86_64)
 url="http://github.com/gchaincl/httplab"
 license=('MIT')
-makedepends=('go>=1.7')
+makedepends=('wget')
 provides=('httplab=$pkgver')
 conflicts=('httplab')
 replaces=('httplab')
 install=
-source=("$pkgname"::'git+https://github.com/gchaincl/httplab.git')
-md5sums=(SKIP)
-_goname="github.com/gchaincl/httplab"
-
-
-build() {
-	rm -rf gopath
-	mkdir -p gopath/src/${_goname}
-	mv "$pkgname"/* gopath/src/${_goname}
-	cd gopath/src/${_goname}
-	env GOPATH="$srcdir/gopath" go get -v
-}
+source=("$pkgname"::'https://github.com/gchaincl/httplab/releases/download/v0.2.1/httplab_linux_amd64')
+md5sums=(
+	'6e1051b464963eb40e89a786ef9dcce8'
+)
 
 package() {
-	install -D -s -m755 "${srcdir}/gopath/bin/${pkgname}" "${pkgdir}/usr/bin/${pkgname}"
+	install -D -s -m755 "httplab" "${pkgdir}/usr/bin/${pkgname}"
 }

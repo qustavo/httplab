@@ -1,4 +1,4 @@
-package main
+package httplab
 
 import (
 	"bytes"
@@ -7,9 +7,16 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"regexp"
 	"strings"
 	"io"
 )
+
+var decolorizeRegex = regexp.MustCompile("\x1b\\[0;\\d+m")
+
+func Decolorize(s []byte) []byte {
+	return decolorizeRegex.ReplaceAll(s, nil)
+}
 
 func valueOrDefault(value, def string) string {
 	if value == "" {

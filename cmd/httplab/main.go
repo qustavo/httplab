@@ -9,12 +9,13 @@ import (
 	"os/user"
 	"time"
 
+	"github.com/gchaincl/httplab"
 	"github.com/jroimartin/gocui"
 )
 
-const VERSION = "v0.2.0"
+const VERSION = "v0.3.0-dev"
 
-func NewHandler(ui *UI, g *gocui.Gui) http.Handler {
+func NewHandler(ui *httplab.UI, g *gocui.Gui) http.Handler {
 	fn := func(w http.ResponseWriter, req *http.Request) {
 		if err := ui.AddRequest(g, req); err != nil {
 			ui.Info(g, "%v", err)
@@ -46,7 +47,7 @@ func defaultConfigPath() string {
 func usage() {
 	fmt.Fprintf(os.Stderr, "Usage of %s:\n", os.Args[0])
 	flag.PrintDefaults()
-	fmt.Fprintf(os.Stderr, "\nBindings:\n%s", Bindings.Help())
+	fmt.Fprintf(os.Stderr, "\nBindings:\n%s", httplab.Bindings.Help())
 }
 
 func Version() {
@@ -80,7 +81,7 @@ func main() {
 		config = defaultConfigPath()
 	}
 
-	ui := NewUI(config)
+	ui := httplab.NewUI(config)
 	if err := ui.Init(g); err != nil {
 		log.Println(err)
 		return
