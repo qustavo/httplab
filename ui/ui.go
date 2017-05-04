@@ -151,7 +151,7 @@ func (ui *UI) Layout(g *gocui.Gui) error {
 	} else {
 		splitX = NewSplit(maxX).Relative(70)
 	}
-	splitY = NewSplit(maxY).Fixed(maxY - 4)
+	splitY = NewSplit(maxY).Fixed(maxY - 2)
 
 	if v, err := g.SetView(REQUEST_VIEW, 0, 0, splitX.Next(), splitY.Next()); err != nil {
 		if err != gocui.ErrUnknownView {
@@ -166,10 +166,11 @@ func (ui *UI) Layout(g *gocui.Gui) error {
 		return err
 	}
 
-	if _, err := g.SetView(INFO_VIEW, 0, splitY.Current()+1, maxX-1, maxY-1); err != nil {
+	if v, err := g.SetView(INFO_VIEW, -1, splitY.Current(), maxX-1, maxY); err != nil {
 		if err != gocui.ErrUnknownView {
 			return err
 		}
+		v.Frame = false
 	}
 
 	if v := g.CurrentView(); v == nil {
@@ -191,7 +192,7 @@ func (ui *UI) setResponseView(g *gocui.Gui, x0, y0, x1, y1 int) error {
 		return nil
 	}
 
-	split := NewSplit(y1).Fixed(2, 3).Relative(40)
+	split := NewSplit(y1).Fixed(2, 2).Relative(40)
 	if v, err := g.SetView(STATUS_VIEW, x0, y0, x1, split.Next()); err != nil {
 		if err != gocui.ErrUnknownView {
 			return err
@@ -203,7 +204,7 @@ func (ui *UI) setResponseView(g *gocui.Gui, x0, y0, x1, y1 int) error {
 		fmt.Fprintf(v, "%d", ui.resp.Status)
 	}
 
-	if v, err := g.SetView(DELAY_VIEW, x0, split.Current()+1, x1, split.Next()); err != nil {
+	if v, err := g.SetView(DELAY_VIEW, x0, split.Current(), x1, split.Next()); err != nil {
 		if err != gocui.ErrUnknownView {
 			return err
 		}
@@ -214,7 +215,7 @@ func (ui *UI) setResponseView(g *gocui.Gui, x0, y0, x1, y1 int) error {
 		fmt.Fprintf(v, "%d", ui.resp.Delay/time.Millisecond)
 	}
 
-	if v, err := g.SetView(HEADERS_VIEW, x0, split.Current()+1, x1, split.Next()); err != nil {
+	if v, err := g.SetView(HEADERS_VIEW, x0, split.Current(), x1, split.Next()); err != nil {
 		if err != gocui.ErrUnknownView {
 			return err
 		}
@@ -228,7 +229,7 @@ func (ui *UI) setResponseView(g *gocui.Gui, x0, y0, x1, y1 int) error {
 		fmt.Fprint(v, strings.Join(headers, "\n"))
 	}
 
-	if v, err := g.SetView(BODY_VIEW, x0, split.Current()+1, x1, y1); err != nil {
+	if v, err := g.SetView(BODY_VIEW, x0, split.Current(), x1, y1); err != nil {
 		if err != gocui.ErrUnknownView {
 			return err
 		}
