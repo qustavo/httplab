@@ -221,9 +221,11 @@ func (ui *UI) setResponseView(g *gocui.Gui, x0, y0, x1, y1 int) error {
 		v.Editable = true
 		v.Editor = newEditor(ui, g, nil)
 		v.Title = "Headers"
+		var headers []string
 		for key := range ui.resp.Headers {
-			fmt.Fprintf(v, "%s: %s\n", key, ui.resp.Headers.Get(key))
+			headers = append(headers, key+": "+ui.resp.Headers.Get(key))
 		}
+		fmt.Fprint(v, strings.Join(headers, "\n"))
 	}
 
 	if v, err := g.SetView(BODY_VIEW, x0, split.Current()+1, x1, y1); err != nil {

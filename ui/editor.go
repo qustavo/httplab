@@ -35,6 +35,14 @@ func (e *editor) Edit(v *gocui.View, key gocui.Key, ch rune, mod gocui.Modifier)
 		}
 	}
 
+	// prevent infinite scrolling
+	if (key == gocui.KeyArrowDown || key == gocui.KeyArrowRight) && mod == gocui.ModNone {
+		_, cy := v.Cursor()
+		if _, err := v.Line(cy); err != nil {
+			return
+		}
+	}
+
 	e.handler.Edit(v, key, ch, mod)
 }
 
