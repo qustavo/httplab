@@ -1,4 +1,6 @@
-## v0.3.0
+## v0.3.0-dev
+* Save Requests payload into a file (ctrl+f)
+* Compact UI
 * Make ui a package
 * Responses can be deleted with 'd'
 * [fix] Truncate .http file before saving
