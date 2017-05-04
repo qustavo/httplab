@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"os"
 	"strconv"
 	"strings"
 	"sync"
@@ -33,6 +34,13 @@ var cicleable = []string{
 	HEADERS_VIEW,
 	BODY_VIEW,
 	REQUEST_VIEW,
+}
+
+func max(a, b int) int {
+	if a > b {
+		return a
+	}
+	return b
 }
 
 type UI struct {
@@ -530,20 +538,20 @@ func (ui *UI) toggleResponseBuilder(g *gocui.Gui) error {
 	return nil
 }
 
-func (ui *UI) saveResponsePopup(g *gocui.Gui) error {
+func (ui *UI) openSavePopup(g *gocui.Gui, title string, fn func(*gocui.Gui, string) error) error {
 	if err := ui.closePopup(g, ui.currentPopup); err != nil {
 		return err
 	}
 
-	popup, err := ui.openPopup(g, SAVE_VIEW, 20, 2)
+	popup, err := ui.openPopup(g, SAVE_VIEW, max(20, len(title)+3), 2)
 	if err != nil {
 		return err
 	}
 
 	onEnter := func(g *gocui.Gui, v *gocui.View) error {
-		name := strings.Trim(v.Buffer(), " \n")
-		if err := ui.saveResponseAs(g, name); err != nil {
-			ui.Info(g, "%v", err)
+		value := strings.Trim(v.Buffer(), " \n")
+		if err := fn(g, value); err != nil {
+			ui.Info(g, err.Error())
 		}
 		return ui.closePopup(g, SAVE_VIEW)
 	}
@@ -552,9 +560,17 @@ func (ui *UI) saveResponsePopup(g *gocui.Gui) error {
 		return err
 	}
 
-	popup.Title = "Save as..."
+	popup.Title = title
 	popup.Editable = true
+	g.Cursor = true
 	return nil
+}
+
+func (ui *UI) saveResponsePopup(g *gocui.Gui) error {
+	fn := func(g *gocui.Gui, name string) error {
+		return ui.saveResponseAs(g, name)
+	}
+	return ui.openSavePopup(g, "Save Response as...", fn)
 }
 
 func (ui *UI) saveResponseAs(g *gocui.Gui, name string) error {
@@ -569,6 +585,42 @@ func (ui *UI) saveResponseAs(g *gocui.Gui, name string) error {
 	}
 
 	ui.Info(g, "Response applied and saved as '%s'", name)
+	return nil
+}
+
+func (ui *UI) saveRequestPopup(g *gocui.Gui) error {
+	// Only open the popup if there's requests
+	if len(ui.requests) == 0 {
+		ui.Info(g, "No Requests to save")
+		return nil
+	}
+
+	fn := func(g *gocui.Gui, name string) error {
+		return ui.saveRequestAs(g, name)
+	}
+
+	return ui.openSavePopup(g, "Save Request as...", fn)
+}
+
+func (ui *UI) saveRequestAs(g *gocui.Gui, name string) error {
+	ui.reqLock.Lock()
+	defer ui.reqLock.Unlock()
+	if len(ui.requests) == 0 {
+		return nil
+	}
+	req := ui.requests[ui.currentRequest]
+
+	file, err := os.OpenFile(name, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0644)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	if _, err := file.Write(httplab.Decolorize(req)); err != nil {
+		return err
+	}
+
+	ui.Info(g, "Request saved as '%s'", name)
 	return nil
 }
 

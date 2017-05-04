@@ -16,6 +16,12 @@ go install github.com/gchaincl/httplab/cmd/httplab
 yaourt httplab
 ```
 
+### Snap
+On [systems](https://snapcraft.io/docs/core/install) where snap is supported:
+```
+snap install httplab
+```
+
 ### Binary distribution
 Each release provides pre-built binaries for different architectures, you can download them here: https://github.com/gchaincl/httplab/releases/latest
 
@@ -38,6 +44,7 @@ Key                                     | Description
 <kbd>Ctrl+a</kbd>                       | Apply Response changes
 <kbd>Ctrl+r</kbd>                       | Resets Request history
 <kbd>Ctrl+s</kbd>                       | Save Response as
+<kbd>Ctrl+f</kbd>                       | Save Request as
 <kbd>Ctrl+l</kbd>                       | Toggle Responses list
 <kbd>Ctrl+t</kbd>                       | Toggle Response builder
 <kbd>Ctrl+o</kbd>                       | Open Body file
