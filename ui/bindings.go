@@ -164,15 +164,3 @@ func onQuit(ui *UI) ActionFn {
 		return gocui.ErrQuit
 	}
 }
-
-func onCursorUp(g *gocui.Gui, v *gocui.View) error {
-	cx, cy := v.Cursor()
-	v.SetCursor(cx, cy-1)
-	return nil
-}
-
-func onCursorDown(g *gocui.Gui, v *gocui.View) error {
-	cx, cy := v.Cursor()
-	v.SetCursor(cx, cy+1)
-	return nil
-}
