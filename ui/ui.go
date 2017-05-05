@@ -43,6 +43,29 @@ func max(a, b int) int {
 	return b
 }
 
+// Cursors stores the cursor position for a specific view
+// this is used to restore mouse position when click is detected
+type Cursors map[string]struct{ x, y int }
+
+func NewCursors() Cursors {
+	return make(Cursors)
+}
+
+func (c Cursors) Restore(view *gocui.View) error {
+	return view.SetCursor(c.Get(view.Name()))
+}
+
+func (c Cursors) Get(view string) (int, int) {
+	if v, ok := c[view]; ok {
+		return v.x, v.y
+	}
+	return 0, 0
+}
+
+func (c Cursors) Set(view string, x, y int) {
+	c[view] = struct{ x, y int }{x, y}
+}
+
 type UI struct {
 	resp                *httplab.Response
 	responses           *httplab.ResponsesList
@@ -51,6 +74,7 @@ type UI struct {
 	currentPopup        string
 	configPath          string
 	hideResponseBuilder bool
+	cursors             Cursors
 
 	reqLock        sync.Mutex
 	requests       [][]byte
@@ -71,6 +95,7 @@ func New(configPath string) *UI {
 		},
 		responses:  httplab.NewResponsesList(),
 		configPath: configPath,
+		cursors:    NewCursors(),
 	}
 }
 
@@ -78,6 +103,7 @@ func (ui *UI) Init(g *gocui.Gui) (chan<- error, error) {
 	g.Cursor = true
 	g.Highlight = true
 	g.SelFgColor = gocui.ColorGreen
+	g.Mouse = true
 
 	g.SetManager(ui)
 	if err := Bindings.Apply(ui, g); err != nil {
@@ -91,6 +117,34 @@ func (ui *UI) Init(g *gocui.Gui) (chan<- error, error) {
 			return err
 		})
 	}()
+
+	for _, view := range cicleable {
+		fn := func(g *gocui.Gui, v *gocui.View) error {
+			cx, cy := v.Cursor()
+			line, err := v.Line(cy)
+			if err != nil {
+				ui.cursors.Restore(v)
+				ui.setView(g, v.Name())
+				return nil
+			}
+
+			if cx > len(line) {
+				v.SetCursor(len(line), cy)
+				ui.cursors.Set(v.Name(), len(line), cy)
+			}
+
+			ui.setView(g, v.Name())
+			return nil
+		}
+
+		if err := g.SetKeybinding(view, gocui.MouseLeft, gocui.ModNone, fn); err != nil {
+			return nil, err
+		}
+
+		if err := g.SetKeybinding(view, gocui.MouseRelease, gocui.ModNone, fn); err != nil {
+			return nil, err
+		}
+	}
 
 	return errCh, nil
 }
@@ -393,6 +447,11 @@ func (ui *UI) setView(g *gocui.Gui, view string) error {
 	if err := ui.closePopup(g, ui.currentPopup); err != nil {
 		return err
 	}
+
+	// Save cursor position before switch view
+	cur := g.CurrentView()
+	x, y := cur.Cursor()
+	ui.cursors.Set(cur.Name(), x, y)
 
 	_, err := g.SetCurrentView(view)
 	return err
