@@ -1,4 +1,5 @@
 ## v0.3.0-dev
+* Add mouse support
 * Save Requests payload into a file (ctrl+f)
 * Compact UI
 * Make ui a package
