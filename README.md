@@ -1,5 +1,5 @@
-# HTTPLab [![Build Status](https://travis-ci.org/gchaincl/httplab.svg?branch=master)](https://travis-ci.org/gchaincl/httplab)
-An interactive web server.
+# HTTPLab [![Build Status](https://travis-ci.org/gchaincl/httplab.svg?branch=master)](https://travis-ci.org/gchaincl/httplab) [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square)](http://makeapullrequest.com) 
+An interactive web server .
 
 HTTPLabs let you inspect HTTP requests and forge responses.
 
