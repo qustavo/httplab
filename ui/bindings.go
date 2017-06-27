@@ -70,6 +70,7 @@ var Bindings = &bindings{
 	{gocui.KeyCtrlT, "Ctrl+t", "Toggle Response builder", nil, onToggleResponseBuilder},
 	{gocui.KeyCtrlO, "Ctrl+o", "Open Body file...", nil, onOpenFile},
 	{gocui.KeyCtrlB, "Ctrl+b", "Switch Body mode", nil, onSwitchBodyMode},
+	{gocui.KeyCtrlW, "Ctrl+w", "Toggle line wrapping", nil, onTogglLineWrapping},
 	{'q', "q", "Close Popup", []string{"bindings", "responses"}, onClosePopup},
 	{gocui.KeyPgup, "PgUp", "Previous Request", nil, onPrevRequest},
 	{gocui.KeyPgdn, "PgDown", "Next Request", nil, onNextRequest},
@@ -138,6 +139,12 @@ func onOpenFile(ui *UI) ActionFn {
 func onSwitchBodyMode(ui *UI) ActionFn {
 	return func(g *gocui.Gui, v *gocui.View) error {
 		return ui.nextBodyMode(g)
+	}
+}
+
+func onTogglLineWrapping(ui *UI) ActionFn {
+	return func(g *gocui.Gui, v *gocui.View) error {
+		return ui.toggleLineWrap(g)
 	}
 }
 

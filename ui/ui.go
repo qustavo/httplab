@@ -746,3 +746,13 @@ func (ui *UI) nextBodyMode(g *gocui.Gui) error {
 	body.Mode = body.Mode%httplab.BodyMode(len(modes)) + 1
 	return ui.renderBody(g)
 }
+
+func (ui *UI) toggleLineWrap(g *gocui.Gui) error {
+	view, err := g.View(REQUEST_VIEW)
+	if err != nil {
+		return err
+	}
+
+	view.Wrap = !view.Wrap
+	return nil
+}

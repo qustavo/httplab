@@ -1,4 +1,6 @@
 ## v0.3.0-dev
+
+* Enable Line Wrapping (issue #38)
 * Add mouse support
 * Save Requests payload into a file (ctrl+f)
 * Compact UI
