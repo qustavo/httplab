@@ -50,6 +50,7 @@ Key                                     | Description
 <kbd>Ctrl+o</kbd>                       | Open Body file
 <kbd>Ctrl+b</kbd>                       | Switch Body mode
 <kbd>Ctrl+h</kbd>                       | Toggle Help
+<kbd>Ctrl+w</kbd>                       | Toggle line wrapping
 <kbd>q</kbd>                            | Close popup
 <kbd>PgUp</kbd>                         | Previous Request
 <kbd>PgDown</kbd>                       | Next Request
