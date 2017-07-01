@@ -35,6 +35,12 @@
 			"revisionTime": "2017-01-30T11:31:45Z"
 		},
 		{
+			"checksumSHA1": "MzR/B2BTVDhgZJZap2SKnxUdblA=",
+			"path": "github.com/rs/cors",
+			"revision": "bf64c5349c0f7e5e1554921e798e052958e0fe2f",
+			"revisionTime": "2017-05-29T16:07:56Z"
+		},
+		{
 			"checksumSHA1": "JXUVA1jky8ZX8w09p2t5KLs97Nc=",
 			"path": "github.com/stretchr/testify/assert",
 			"revision": "4d4bfba8f1d1027c4fdbe371823030df51419987",
