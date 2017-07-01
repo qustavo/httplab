@@ -30,6 +30,8 @@ Each release provides pre-built binaries for different architectures, you can do
 Usage of httplab:
   -config string
         Specifies custom config path.
+  -cors
+        Enable CORS.
   -port int
         Specifies the port where HTTPLab will bind to. (default 10080)
   -version
