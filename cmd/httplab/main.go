@@ -11,6 +11,7 @@ import (
 
 	"github.com/gchaincl/httplab/ui"
 	"github.com/jroimartin/gocui"
+	"github.com/rs/cors"
 )
 
 const VERSION = "v0.3.0-dev"
@@ -56,14 +57,18 @@ func Version() {
 }
 
 func main() {
-	var port int
-	var config string
-	var version bool
+	var (
+		port    int
+		config  string
+		version bool
+		cors    bool
+	)
 
 	flag.Usage = usage
 	flag.IntVar(&port, "port", 10080, "Specifies the port where HTTPLab will bind to.")
 	flag.StringVar(&config, "config", "", "Specifies custom config path.")
 	flag.BoolVar(&version, "version", false, "Prints current version.")
+	flag.BoolVar(&cors, "cors", false, "Enable CORS.")
 
 	flag.Parse()
 
@@ -71,12 +76,12 @@ func main() {
 		Version()
 	}
 
-	if err := run(config, port); err != nil && err != gocui.ErrQuit {
+	if err := run(config, port, cors); err != nil && err != gocui.ErrQuit {
 		log.Println(err)
 	}
 }
 
-func run(config string, port int) error {
+func run(config string, port int, _cors bool) error {
 	g, err := gocui.NewGui(gocui.Output256)
 	if err != nil {
 		log.Fatalln(err)
@@ -93,7 +98,13 @@ func run(config string, port int) error {
 		return err
 	}
 
-	http.Handle("/", NewHandler(ui, g))
+	handler := NewHandler(ui, g)
+	if _cors == true {
+		log.Printf("With CORS")
+		handler = cors.Default().Handler(handler)
+	}
+
+	http.Handle("/", handler)
 	go func() {
 		// Make sure gocui has started
 		g.Execute(func(g *gocui.Gui) error { return nil })
