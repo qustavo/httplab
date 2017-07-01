@@ -1,4 +1,5 @@
 ## v0.4.0-dev
+* CORS support via `-cors` (issue #39)
 
 ## v0.3.0
 * Enable Line Wrapping (issue #38)
