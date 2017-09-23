@@ -182,7 +182,7 @@ func NewResponse(status, headers, body string) (*Response, error) {
 			continue
 		}
 
-		kv := strings.Split(line, ":")
+		kv := strings.SplitN(line, ":", 2)
 		if len(kv) != 2 {
 			continue
 		}
