@@ -14,7 +14,7 @@ import (
 	"github.com/rs/cors"
 )
 
-const VERSION = "v0.3.0-dev"
+const VERSION = "v0.4.0-dev"
 
 func NewHandler(ui *ui.UI, g *gocui.Gui) http.Handler {
 	fn := func(w http.ResponseWriter, req *http.Request) {
