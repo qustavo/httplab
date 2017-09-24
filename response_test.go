@@ -44,6 +44,7 @@ func TestResponseHeaders(t *testing.T) {
 	headers := `
 	Content-Type: application/json
 	X-MyHeader: value
+	Location: http://foo.bar:8000
 	X-Empty: 
 	Invalid
 	`
@@ -53,6 +54,7 @@ func TestResponseHeaders(t *testing.T) {
 	assert.Equal(t, "application/json", resp.Headers.Get("Content-Type"))
 	assert.Equal(t, "value", resp.Headers.Get("X-MyHeader"))
 	assert.Equal(t, "", resp.Headers.Get("X-Empty"))
+	assert.Equal(t, "http://foo.bar:8000", resp.Headers.Get("Location"))
 	assert.Contains(t, resp.Headers, "X-Empty")
 	assert.NotContains(t, resp.Headers, "Invalid")
 }
