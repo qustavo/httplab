@@ -1,7 +1,6 @@
 package main
 
 import (
-	"flag"
 	"fmt"
 	"log"
 	"net/http"
@@ -9,6 +8,7 @@ import (
 	"os/user"
 	"time"
 
+	"github.com/alecthomas/kingpin"
 	"github.com/gchaincl/httplab/ui"
 	"github.com/jroimartin/gocui"
 	"github.com/rs/cors"
@@ -45,38 +45,26 @@ func defaultConfigPath() string {
 	return u.HomeDir + "/" + path
 }
 
-func usage() {
-	fmt.Fprintf(os.Stderr, "Usage of %s:\n", os.Args[0])
-	flag.PrintDefaults()
-	fmt.Fprintf(os.Stderr, "\nBindings:\n%s", ui.Bindings.Help())
-}
-
-func Version() {
-	fmt.Fprintf(os.Stdout, "%s\n", VERSION)
-	os.Exit(0)
-}
-
 func main() {
 	var (
-		port    int
-		config  string
-		version bool
-		cors    bool
+		config   = kingpin.Flag("config", "Specifies custom config path.").Short('c').String()
+		cors     = kingpin.Flag("cors", "Enable CORS").Default("false").Bool()
+		port     = kingpin.Flag("port", "Specifies the port where HTTPLab will bind to.").Short('p').Default("10080").Int()
+		bindings = kingpin.Flag("bindings", "Show keyboard bindings").Bool()
 	)
 
-	flag.Usage = usage
-	flag.IntVar(&port, "port", 10080, "Specifies the port where HTTPLab will bind to.")
-	flag.StringVar(&config, "config", "", "Specifies custom config path.")
-	flag.BoolVar(&version, "version", false, "Prints current version.")
-	flag.BoolVar(&cors, "cors", false, "Enable CORS.")
+	kingpin.Version(VERSION)
+	kingpin.CommandLine.VersionFlag.Short('v')
+	kingpin.CommandLine.HelpFlag.Short('h')
 
-	flag.Parse()
+	kingpin.Parse()
 
-	if version {
-		Version()
+	if *bindings {
+		fmt.Fprintf(os.Stderr, "\nBindings:\n%s", ui.Bindings.Help())
+		os.Exit(0)
 	}
 
-	if err := run(config, port, cors); err != nil && err != gocui.ErrQuit {
+	if err := run(*config, *port, *cors); err != nil && err != gocui.ErrQuit {
 		log.Println(err)
 	}
 }
