@@ -1,7 +1,6 @@
 package main
 
 import (
-	"flag"
 	"fmt"
 	"log"
 	"net/http"
@@ -12,6 +11,7 @@ import (
 	"github.com/gchaincl/httplab/ui"
 	"github.com/jroimartin/gocui"
 	"github.com/rs/cors"
+	flag "github.com/spf13/pflag"
 )
 
 const VERSION = "v0.4.0-dev"
@@ -65,9 +65,10 @@ func main() {
 	)
 
 	flag.Usage = usage
-	flag.IntVar(&port, "port", 10080, "Specifies the port where HTTPLab will bind to.")
-	flag.StringVar(&config, "config", "", "Specifies custom config path.")
-	flag.BoolVar(&version, "version", false, "Prints current version.")
+
+	flag.IntVarP(&port, "port", "p", 10080, "Specifies the port where HTTPLab will bind to.")
+	flag.StringVarP(&config, "config", "c", "", "Specifies custom config path.")
+	flag.BoolVarP(&version, "version", "v", false, "Prints current version.")
 	flag.BoolVar(&cors, "cors", false, "Enable CORS.")
 
 	flag.Parse()
