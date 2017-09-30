@@ -6,7 +6,9 @@ go:
     - tip
 
 install:
+  - go get github.com/golang/lint/golint
   - go get -t ./...
 
 script:
-  - go test $(go list ./...|grep -v vendor)
+  - golint $(go list ./... | grep -v /vendor/)
+  - go test $(go list ./...| grep -v /vendor/)
