@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"net/http"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -39,5 +40,26 @@ func TestDecolorization(t *testing.T) {
 		text := "Some Text"
 		nocolor := Decolorize([]byte(withColor(i, text)))
 		assert.Equal(t, text, string(nocolor))
+	}
+}
+
+func TestAlphabetizedHeaders(t *testing.T) {
+	// TODO: randomize this
+	keys := []string{"Z5", "A1", "M3", "R4", "C2"}
+	sortedKeys := []string{"A1", "C2", "M3", "R4", "Z5"}
+
+	req, _ := http.NewRequest("GET", "/", bytes.NewBuffer(nil))
+	for _, k := range keys {
+		req.Header.Set(k, "")
+	}
+
+	buf, err := DumpRequest(req)
+	require.NoError(t, err)
+	decBuf := Decolorize(buf)
+	priorIdx := -1
+	for _, val := range sortedKeys {
+		foundIdx := strings.Index(string(decBuf), val)
+		assert.True(t, foundIdx > priorIdx)
+		priorIdx = foundIdx
 	}
 }
