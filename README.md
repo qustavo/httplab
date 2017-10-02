@@ -1,4 +1,4 @@
-# HTTPLab [![Build Status](https://travis-ci.org/gchaincl/httplab.svg?branch=master)](https://travis-ci.org/gchaincl/httplab) [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square)](http://makeapullrequest.com) 
+# HTTPLab [![Build Status](https://travis-ci.org/gchaincl/httplab.svg?branch=master)](https://travis-ci.org/gchaincl/httplab) [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square)](http://makeapullrequest.com)
 An interactive web server .
 
 HTTPLabs let you inspect HTTP requests and forge responses.
@@ -28,15 +28,15 @@ Each release provides pre-built binaries for different architectures, you can do
 
 ## Help
 ```
-Usage of httplab:
-  -config string
-        Specifies custom config path.
-  -cors
-        Enable CORS.
-  -port int
-        Specifies the port where HTTPLab will bind to. (default 10080)
-  -version
-        Prints current version.
+usage: httplab [<flags>]
+
+Flags:
+  -h, --help           Show context-sensitive help (also try --help-long and --help-man).
+  -c, --config=CONFIG  Specifies custom config path.
+      --cors           Enable CORS
+  -p, --port=10080     Specifies the port where HTTPLab will bind to.
+      --bindings       Show keyboard bindings
+  -v, --version        Show application version.
 ```
 
 ### Key Bindings
