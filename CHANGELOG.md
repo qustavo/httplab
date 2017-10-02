@@ -1,4 +1,5 @@
 ## v0.4.0-dev
+* Add short flags support (@dnguy078, issue #49)
 * Display request headers in a sorted way on the client (@waleoyediran, issue #47)
 * [bugfix] Location header not rendered to client (@vjeantet, issue #44)
 * CORS support via `-cors` (issue #39)
