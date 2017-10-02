@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"regexp"
+	"sort"
 	"strings"
 )
 
@@ -63,11 +64,21 @@ func DumpRequest(req *http.Request) ([]byte, error) {
 		req.ProtoMinor,
 	)
 
-	for key := range req.Header {
+	keys := sortedHeaderKeys(req)
+	for _, key := range keys {
 		val := req.Header.Get(key)
 		fmt.Fprintf(buf, "%s: %s\n", withColor(31, key), withColor(32, val))
 	}
 
 	err := writeBody(buf, req)
 	return buf.Bytes(), err
+}
+
+func sortedHeaderKeys(req *http.Request) []string {
+	var keys []string
+	for k := range req.Header {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+	return keys
 }

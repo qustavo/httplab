@@ -8,6 +8,8 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"strings"
+	"sort"
 )
 
 func TestDumpRequestWithJSON(t *testing.T) {
@@ -31,6 +33,26 @@ func TestDumpRequestWithJSON(t *testing.T) {
 		buf, err := DumpRequest(req)
 		require.NoError(t, err)
 		fmt.Printf("%s\n", buf)
+	})
+}
+
+func TestDumpRequestHeaders(t *testing.T) {
+	t.Run("request headers should be dumped in sorted order", func(t *testing.T) {
+
+		keys := []string{"B", "A", "C", "D", "E", "F", "H", "G", "I"}
+		req, _ := http.NewRequest("GET", "/", bytes.NewBuffer(nil))
+		for _, k := range keys {
+			req.Header.Set(k, "")
+		}
+
+		buf, err := DumpRequest(req)
+		require.NoError(t, err)
+		sort.Strings(keys)
+
+		startLine := "GET / HTTP/1.1\n"
+		response :=  startLine + strings.Join(keys, ": \n") + ": \n"
+
+		assert.Contains(t, response, string(Decolorize(buf)))
 	})
 }
 
