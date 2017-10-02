@@ -1,5 +1,4 @@
-# HTTPLab [![Build Status](https://travis-ci.org/gchaincl/httplab.svg?branch=master)](https://travis-ci.org/gchaincl/httplab) [![Go Report Card](https://goreportcard.com/badge/github.com/gchaincl/httplab)](https://goreportcard.com/report/gchaincl/httplab)
-[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square)](http://makeapullrequest.com) 
+# HTTPLab [![Build Status](https://travis-ci.org/gchaincl/httplab.svg?branch=master)](https://travis-ci.org/gchaincl/httplab) [![Go Report Card](https://goreportcard.com/badge/github.com/gchaincl/httplab)](https://goreportcard.com/report/gchaincl/httplab)[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square)](http://makeapullrequest.com) 
 An interactive web server .
 
 HTTPLabs let you inspect HTTP requests and forge responses.
