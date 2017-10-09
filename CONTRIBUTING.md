@@ -17,7 +17,7 @@ so please *make sure your question hasn't been replied* before opening a new iss
 
 ## Writing code
 If you fix a bug, or introduce a new feature, make sure that:
-* **No one else is already working on that**. Review the open pull requests before start working on it.
+* **No one else is already working on that**. Review the open pull requests (see [#In Progress](https://github.com/gchaincl/httplab/issues?q=is%3Aopen+is%3Aissue+label%3A%22In+Progress%22) issues)  before start working on it.
 * Whenever is possible, **add tests**
 * Try to follow the conventions
 * Keep the pull request small
