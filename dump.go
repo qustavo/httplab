@@ -2,6 +2,7 @@ package httplab
 
 import (
 	"bytes"
+	"compress/gzip"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -9,6 +10,7 @@ import (
 	"regexp"
 	"sort"
 	"strings"
+	"io"
 )
 
 var decolorizeRegex = regexp.MustCompile("\x1b\\[0;\\d+m")
@@ -29,6 +31,19 @@ func withColor(color int, text string) string {
 }
 
 func writeBody(buf *bytes.Buffer, req *http.Request) error {
+	ctype := req.Header.Get("Content-Type")
+
+	// Decoding Gzipped content
+	if strings.Contains(ctype, "gzip") {
+		raw, err := gzip.NewReader(req.Body)
+		if err != nil {
+			return err
+		}
+
+		_, err = io.Copy(buf, raw)
+		return err
+	}
+
 	body, err := ioutil.ReadAll(req.Body)
 	if err != nil {
 		return err
@@ -38,7 +53,8 @@ func writeBody(buf *bytes.Buffer, req *http.Request) error {
 		buf.WriteRune('\n')
 	}
 
-	if strings.Contains(req.Header.Get("Content-Type"), "application/json") {
+	// JSON stuff
+	if strings.Contains(ctype, "application/json") {
 		if err := json.Indent(buf, body, "", "  "); err == nil {
 			return nil
 		}
