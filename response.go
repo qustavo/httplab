@@ -103,6 +103,7 @@ type Response struct {
 	Delay   time.Duration
 }
 
+// UnmarshalJSON inflats the Response from []byte representing JSON.
 func (r *Response) UnmarshalJSON(data []byte) error {
 	type alias Response
 	v := struct {
@@ -140,6 +141,7 @@ func (r *Response) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+// MarshalJSON serializes the response into a JSON []byte.
 func (r *Response) MarshalJSON() ([]byte, error) {
 	type alias Response
 	v := struct {
@@ -169,6 +171,7 @@ func (r *Response) MarshalJSON() ([]byte, error) {
 	return json.MarshalIndent(v, "", "  ")
 }
 
+// NewResponse configures a new response. An empty status will be interpreted as 200 OK.
 func NewResponse(status, headers, body string) (*Response, error) {
 	// Parse Status
 	status = strings.Trim(status, " \r\n")
@@ -177,7 +180,7 @@ func NewResponse(status, headers, body string) (*Response, error) {
 	}
 	code, err := strconv.Atoi(status)
 	if err != nil {
-		return nil, fmt.Errorf("Status: %v", err)
+		return nil, fmt.Errorf("Could not interpret status: %v", err)
 	}
 
 	if code < 100 || code > 599 {
@@ -210,6 +213,7 @@ func NewResponse(status, headers, body string) (*Response, error) {
 	}, nil
 }
 
+// Write satisfies interface io.Writer.
 func (r *Response) Write(w http.ResponseWriter) error {
 	for key := range r.Headers {
 		w.Header().Set(key, r.Headers.Get(key))
@@ -220,12 +224,14 @@ func (r *Response) Write(w http.ResponseWriter) error {
 	return err
 }
 
+// ResponsesList holds the multiple configured responses.
 type ResponsesList struct {
 	List    map[string]*Response
 	keys    []string
 	current int
 }
 
+// NewResponsesList clears the response list.
 func NewResponsesList() *ResponsesList {
 	return (&ResponsesList{}).reset()
 }
@@ -257,6 +263,7 @@ func (rl *ResponsesList) load(path string) (map[string]*Response, error) {
 	return rs.Responses, nil
 }
 
+// Load loads a response list from a local JSON document.
 func (rl *ResponsesList) Load(path string) error {
 	rs, err := rl.load(path)
 	if err != nil {
@@ -268,7 +275,7 @@ func (rl *ResponsesList) Load(path string) error {
 		rl.List = rs
 	}
 
-	for key, _ := range rs {
+	for key := range rs {
 		rl.keys = append(rl.keys, key)
 	}
 	sort.Strings(rl.keys)
@@ -276,6 +283,7 @@ func (rl *ResponsesList) Load(path string) error {
 	return nil
 }
 
+// Save saves the current response list to a JSON document on local disk.
 func (rl *ResponsesList) Save(path string) error {
 	f, err := openConfigFile(path)
 	if err != nil {
@@ -306,13 +314,28 @@ func (rl *ResponsesList) Save(path string) error {
 	return nil
 }
 
-func (rl *ResponsesList) Next()                    { rl.current = (rl.current + 1) % len(rl.keys) }
-func (rl *ResponsesList) Prev()                    { rl.current = (rl.current - 1 + len(rl.keys)) % len(rl.keys) }
-func (rl *ResponsesList) Cur() *Response           { return rl.List[rl.keys[rl.current]] }
-func (rl *ResponsesList) Index() int               { return rl.current }
-func (rl *ResponsesList) Len() int                 { return len(rl.keys) }
-func (rl *ResponsesList) Keys() []string           { return rl.keys }
+// Next iterates to the next item in the response list.
+func (rl *ResponsesList) Next() { rl.current = (rl.current + 1) % len(rl.keys) }
+
+// Prev iterates to the previous item in the response list.
+func (rl *ResponsesList) Prev() { rl.current = (rl.current - 1 + len(rl.keys)) % len(rl.keys) }
+
+// Cur retrieves the current response from the response list.
+func (rl *ResponsesList) Cur() *Response { return rl.List[rl.keys[rl.current]] }
+
+// Index retrieves the index of the current item in the response list.
+func (rl *ResponsesList) Index() int { return rl.current }
+
+// Len reports the length of the response list.
+func (rl *ResponsesList) Len() int { return len(rl.keys) }
+
+// Keys retrieves an []string of all keys in the response list.
+func (rl *ResponsesList) Keys() []string { return rl.keys }
+
+// Get retrieves a specific response by name from the response list.
 func (rl *ResponsesList) Get(key string) *Response { return rl.List[key] }
+
+// Add appends a response item to the list. You need to supply a key for the item.
 func (rl *ResponsesList) Add(key string, r *Response) *ResponsesList {
 	rl.keys = append(rl.keys, key)
 	sort.Strings(rl.keys)
@@ -320,6 +343,7 @@ func (rl *ResponsesList) Add(key string, r *Response) *ResponsesList {
 	return rl
 }
 
+// Del removes an item spceified by its key from the response list. It returns falls if the item didn't exist at all.
 func (rl *ResponsesList) Del(key string) bool {
 	if _, ok := rl.List[key]; !ok {
 		return false
@@ -332,6 +356,7 @@ func (rl *ResponsesList) Del(key string) bool {
 	return true
 }
 
+// ExpandPath expands a given path by replacing '~' with $HOME of the current user.
 func ExpandPath(path string) string {
 	if path[0] == '~' {
 		path = "$HOME" + path[1:len(path)]
