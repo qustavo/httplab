@@ -17,6 +17,7 @@ import (
 // BodyMode represent the current Body mode
 type BodyMode uint
 
+// String to satisfy interface stringer
 func (m BodyMode) String() string {
 	switch m {
 	case BodyInput:
@@ -32,12 +33,14 @@ const (
 	BodyFile
 )
 
+// Body is our response body content, that will either reference an local file or a runtime-supplied []byte.
 type Body struct {
 	Mode  BodyMode
 	Input []byte
 	File  *os.File
 }
 
+// Payload reads out a []byte payload according to it's configuration in Body.BodyMode.
 func (body *Body) Payload() []byte {
 	switch body.Mode {
 	case BodyInput:
@@ -47,34 +50,40 @@ func (body *Body) Payload() []byte {
 			return nil
 		}
 
-		// XXX: Handle this error
-		bytes, _ := ioutil.ReadAll(body.File)
+		bytes, err := ioutil.ReadAll(body.File)
+		if err != nil {
+			return []byte(fmt.Sprintf("File could not be read: %s \n", body.File.Name()))
+		}
 		body.File.Seek(0, 0)
 		return bytes
 	}
-	return nil
+	return []byte("No body configured.")
 }
 
+// Info returns some basic info on the body.
 func (body *Body) Info() []byte {
 	switch body.Mode {
 	case BodyInput:
-		return body.Input
+		return []byte(fmt.Sprintf("size: %d bytes\n", len(body.Input)))
 	case BodyFile:
 		if body.File == nil {
 			return nil
 		}
 
-		// XXX: Handle this error
-		stats, _ := body.File.Stat()
+		stats, err := body.File.Stat()
+		if err != nil {
+			return []byte(fmt.Sprintf("File could not be read: %s \n", body.File.Name()))
+		}
 		w := &bytes.Buffer{}
 		fmt.Fprintf(w, "file: %s\n", body.File.Name())
 		fmt.Fprintf(w, "size: %d bytes\n", stats.Size())
 		fmt.Fprintf(w, "perm: %s\n", stats.Mode())
 		return w.Bytes()
 	}
-	return nil
+	return []byte("No body configured.")
 }
 
+// SetFile set a new source file for the body, if it exists.
 func (body *Body) SetFile(path string) error {
 	file, err := os.Open(ExpandPath(path))
 	if err != nil {
@@ -86,6 +95,7 @@ func (body *Body) SetFile(path string) error {
 	return nil
 }
 
+// Response is the the preconfigured HTTP response that will be returned to the client.
 type Response struct {
 	Status  int
 	Headers http.Header
