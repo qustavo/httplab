@@ -17,7 +17,7 @@ import (
 // BodyMode represent the current Body mode
 type BodyMode uint
 
-// String to satisfy interface stringer
+// String to satisfy interface fmt.Stringer
 func (m BodyMode) String() string {
 	switch m {
 	case BodyInput:
@@ -103,7 +103,7 @@ type Response struct {
 	Delay   time.Duration
 }
 
-// UnmarshalJSON inflats the Response from []byte representing JSON.
+// UnmarshalJSON inflates the Response from []byte representing JSON.
 func (r *Response) UnmarshalJSON(data []byte) error {
 	type alias Response
 	v := struct {
@@ -213,7 +213,7 @@ func NewResponse(status, headers, body string) (*Response, error) {
 	}, nil
 }
 
-// Write satisfies interface io.Writer.
+// Write flushes the body into the ResponseWriter, hence sending it over the wire.
 func (r *Response) Write(w http.ResponseWriter) error {
 	for key := range r.Headers {
 		w.Header().Set(key, r.Headers.Get(key))
@@ -231,7 +231,7 @@ type ResponsesList struct {
 	current int
 }
 
-// NewResponsesList clears the response list.
+// NewResponsesList creates a new empty response list and returns it.
 func NewResponsesList() *ResponsesList {
 	return (&ResponsesList{}).reset()
 }
@@ -343,7 +343,7 @@ func (rl *ResponsesList) Add(key string, r *Response) *ResponsesList {
 	return rl
 }
 
-// Del removes an item spceified by its key from the response list. It returns falls if the item didn't exist at all.
+// Del removes an item spceified by its key from the response list. It returns false if the item didn't exist at all.
 func (rl *ResponsesList) Del(key string) bool {
 	if _, ok := rl.List[key]; !ok {
 		return false
