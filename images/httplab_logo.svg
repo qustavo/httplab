@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="223px" height="59px" viewBox="0 0 223 59" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: Sketch 46 (44423) - http://www.bohemiancoding.com/sketch -->
+    <title>HTTPLAB-A</title>
+    <desc>Created with Sketch.</desc>
+    <defs></defs>
+    <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="HTTPLAB-A">
+            <g id="LOGO" transform="translate(-2.000000, 1.000000)">
+                <text id="TYPE-1" font-family="Roboto-Bold, Roboto" font-size="48" font-weight="bold" letter-spacing="0.670000017" fill="#393A40">
+                    <tspan x="0" y="57">HTTPL		</tspan>
+                </text>
+                <text id="TYPE-2" font-family="Roboto-Bold, Roboto" font-size="48" font-weight="bold" letter-spacing="0.670000017" fill="#393A40">
+                    <tspan x="196" y="57">B</tspan>
+                </text>
+                <path d="M162.026335,54 L188.973019,54 L188.973019,54 C190.077589,54 190.973019,53.1045695 190.973019,52 C190.973019,51.6485153 190.88039,51.3032377 190.704463,50.9989497 L180.225438,32.8741404 L180.225438,32.8741404 C180.049511,32.5698524 179.956882,32.2245748 179.956882,31.8730901 L179.956882,28 L179.956882,28 C179.956882,26.8954305 179.061451,26 177.956882,26 L172.695549,26 L172.695549,26 C171.590979,26 170.695549,26.8954305 170.695549,28 L170.695549,31.8881668 L170.695549,31.8881668 C170.695549,32.2300988 170.607884,32.5663209 170.440926,32.864721 L160.280958,51.0234458 L160.280958,51.0234458 C159.741622,51.9873911 160.085835,53.2060413 161.049781,53.7453773 C161.348181,53.9123348 161.684403,54 162.026335,54 Z" id="lab" stroke="#00B88B" stroke-width="6"></path>
+                <g id="DOTS" transform="translate(166.000000, 0.000000)" fill="#00B88B">
+                    <circle id="dot3" cx="13" cy="16" r="5"></circle>
+                    <circle id="dot2" cx="4" cy="8" r="4"></circle>
+                    <circle id="dot1" cx="10" cy="2" r="2"></circle>
+                </g>
+            </g>
+        </g>
+    </g>
+</svg>
