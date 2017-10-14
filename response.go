@@ -64,7 +64,7 @@ func (body *Body) Payload() []byte {
 func (body *Body) Info() []byte {
 	switch body.Mode {
 	case BodyInput:
-		return []byte(fmt.Sprintf("size: %d bytes\n", len(body.Input)))
+		return body.Input
 	case BodyFile:
 		if body.File == nil {
 			return nil
