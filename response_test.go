@@ -146,7 +146,7 @@ func TestLoadFromJSON(t *testing.T) {
 
 	r.Body.Mode = BodyInput
 	assert.Equal(t, []byte("xxx"), r.Body.Payload())
-	assert.Equal(t, []byte("size: 3 bytes\n"), r.Body.Info())
+	assert.Equal(t, []byte("xxx"), r.Body.Info())
 
 	r.Body.Mode = BodyFile
 	assert.Equal(t, []byte("<html></html>"), r.Body.Payload())
