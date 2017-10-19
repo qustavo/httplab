@@ -152,7 +152,7 @@ func TestLoadFromJSON(t *testing.T) {
 	assert.Equal(t, []byte("<html></html>"), r.Body.Payload())
 
 	t.Run("When config file is empty", func(t *testing.T) {
-		path := time.Now().Format(time.UnixDate)
+		path := string(time.Now().UnixNano())
 		defer os.Remove(path)
 
 		require.NoError(t, rl.Load(path))
