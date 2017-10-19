@@ -1,4 +1,4 @@
-![HTTPLAB](https://raw.githubusercontent.com/harleo/httplab/00983a11/images/httplab_logo.png?raw=true)
+![HTTPLAB](https://github.com/gchaincl/httplab/blob/master/images/httplab_logo.png)
 
 [![Build Status](https://travis-ci.org/gchaincl/httplab.svg?branch=master)](https://travis-ci.org/gchaincl/httplab) [![Go Report Card](https://goreportcard.com/badge/github.com/gchaincl/httplab)](https://goreportcard.com/report/gchaincl/httplab) [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square)](http://makeapullrequest.com) 
 
