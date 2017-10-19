@@ -58,10 +58,11 @@ func Version() {
 
 func main() {
 	var (
-		port    int
-		config  string
-		version bool
-		cors    bool
+		port        int
+		config      string
+		version     bool
+		corsEnabled bool
+		corsDisplay bool
 	)
 
 	flag.Usage = usage
@@ -69,7 +70,9 @@ func main() {
 	flag.IntVarP(&port, "port", "p", 10080, "Specifies the port where HTTPLab will bind to.")
 	flag.StringVarP(&config, "config", "c", "", "Specifies custom config path.")
 	flag.BoolVarP(&version, "version", "v", false, "Prints current version.")
-	flag.BoolVar(&cors, "cors", false, "Enable CORS.")
+	flag.BoolVar(&corsEnabled, "cors", false, "Enable CORS.")
+	flag.BoolVar(&corsDisplay, "cors-display", true, "Display CORS requests")
+
 
 	flag.Parse()
 
@@ -77,12 +80,23 @@ func main() {
 		Version()
 	}
 
-	if err := run(config, port, cors); err != nil && err != gocui.ErrQuit {
+	// noop
+	middleware := func(next http.Handler) http.Handler {
+		return next
+	}
+
+	if corsEnabled {
+		middleware = cors.New(cors.Options{
+			OptionsPassthrough: corsDisplay,
+		}).Handler
+	}
+
+	if err := run(config, port, middleware); err != nil && err != gocui.ErrQuit {
 		log.Println(err)
 	}
 }
 
-func run(config string, port int, _cors bool) error {
+func run(config string, port int, middleware func(next http.Handler) http.Handler) error {
 	g, err := gocui.NewGui(gocui.Output256)
 	if err != nil {
 		log.Fatalln(err)
@@ -99,13 +113,7 @@ func run(config string, port int, _cors bool) error {
 		return err
 	}
 
-	handler := NewHandler(ui, g)
-	if _cors == true {
-		log.Printf("With CORS")
-		handler = cors.Default().Handler(handler)
-	}
-
-	http.Handle("/", handler)
+	http.Handle("/", middleware(NewHandler(ui, g)))
 	go func() {
 		// Make sure gocui has started
 		g.Execute(func(g *gocui.Gui) error { return nil })

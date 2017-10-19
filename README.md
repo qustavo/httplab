@@ -1,5 +1,9 @@
-# HTTPLab [![Build Status](https://travis-ci.org/gchaincl/httplab.svg?branch=master)](https://travis-ci.org/gchaincl/httplab) [![Go Report Card](https://goreportcard.com/badge/github.com/gchaincl/httplab)](https://goreportcard.com/report/gchaincl/httplab) [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square)](http://makeapullrequest.com) 
-An interactive web server .
+![HTTPLAB](https://github.com/gchaincl/httplab/blob/master/images/httplab_logo.png)
+
+[![Build Status](https://travis-ci.org/gchaincl/httplab.svg?branch=master)](https://travis-ci.org/gchaincl/httplab) [![Go Report Card](https://goreportcard.com/badge/github.com/gchaincl/httplab)](https://goreportcard.com/report/gchaincl/httplab) [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square)](http://makeapullrequest.com) 
+
+---
+An interactive web server.
 
 HTTPLabs let you inspect HTTP requests and forge responses.
 
@@ -29,14 +33,11 @@ Each release provides pre-built binaries for different architectures, you can do
 ## Help
 ```
 Usage of httplab:
-  -c, --config string
-        Specifies custom config path.
-  -cors
-        Enable CORS.
-  -p, --port int
-        Specifies the port where HTTPLab will bind to. (default 10080)
-  -v, --version
-        Prints current version.
+  -c, --config string   Specifies custom config path.
+      --cors            Enable CORS.
+      --cors-display    Display CORS requests (default true)
+  -p, --port int        Specifies the port where HTTPLab will bind to. (default 10080)
+  -v, --version         Prints current version.
 ```
 
 ### Key Bindings
