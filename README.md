@@ -61,6 +61,38 @@ Key                                     | Description
 <kbd>Ctrl+c</kbd>                       | Quit
 
 HTTPLab uses file to store pre-built responses, it will look for a file called `.httplab` on the current directory if not found it will fallback to `$HOME`.
+
+### Sample file
 A sample file can be found [here](https://github.com/gchaincl/httplab/blob/master/.httplab.sample).
+
+```
+{
+  "Responses": {
+    "ok": {
+      "Status": 200,
+      "Delay": 0,
+      "Body": "Hello, Gophers",
+      "Headers": {
+        "X-Server": "HTTPLab"
+      }
+    },
+    "create": {
+      "Status": 201,
+      "Delay": 1000,
+      "Body": "{\"created\":\"ok\"}",
+      "Headers": {
+        "Content-Type": "application/json"
+      }
+    },
+    "notfound": {
+      "Status": 404,
+      "Delay": 0,
+      "Body": "Page Not Found",
+      "Headers": {
+      }
+    }
+  }
+}
+```
 
 _HTTPLab is heavily inspired by [wuzz](https://github.com/asciimoo/wuzz)_
