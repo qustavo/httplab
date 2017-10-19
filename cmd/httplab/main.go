@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"net/http"
@@ -73,7 +74,6 @@ func main() {
 	flag.BoolVar(&corsEnabled, "cors", false, "Enable CORS.")
 	flag.BoolVar(&corsDisplay, "cors-display", true, "Display CORS requests")
 
-
 	flag.Parse()
 
 	if version {
@@ -91,12 +91,17 @@ func main() {
 		}).Handler
 	}
 
-	if err := run(config, port, middleware); err != nil && err != gocui.ErrQuit {
-		log.Println(err)
+	if srv, err := run(config, port, middleware); err != nil {
+		if err == gocui.ErrQuit {
+			log.Println("HTTPLab is shutting down")
+			srv.Shutdown(context.Background())
+		} else {
+			log.Println(err)
+		}
 	}
 }
 
-func run(config string, port int, middleware func(next http.Handler) http.Handler) error {
+func run(config string, port int, middleware func(next http.Handler) http.Handler) (*http.Server, error) {
 	g, err := gocui.NewGui(gocui.Output256)
 	if err != nil {
 		log.Fatalln(err)
@@ -110,19 +115,24 @@ func run(config string, port int, middleware func(next http.Handler) http.Handle
 	ui := ui.New(config)
 	errCh, err := ui.Init(g)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	http.Handle("/", middleware(NewHandler(ui, g)))
+	srv := &http.Server{
+		Addr:    fmt.Sprintf(":%d", port),
+		Handler: http.Handler(middleware(NewHandler(ui, g))),
+	}
+
 	go func() {
 		// Make sure gocui has started
 		g.Execute(func(g *gocui.Gui) error { return nil })
 
-		ui.Info(g, "Listening on :%d", port)
-		if err := http.ListenAndServe(fmt.Sprintf(":%d", port), nil); err != nil {
+		if err := srv.ListenAndServe(); err != nil {
 			errCh <- err
+		} else {
+			ui.Info(g, "Listening on :%d", port)
 		}
 	}()
 
-	return g.MainLoop()
+	return srv, g.MainLoop()
 }
