@@ -50,14 +50,12 @@ func (body *Body) Payload() []byte {
 			return nil
 		}
 
-		bytes, err := ioutil.ReadAll(body.File)
-		if err != nil {
-			return []byte(fmt.Sprintf("File could not be read: %s \n", body.File.Name()))
-		}
+		// XXX: Handle this error
+		bytes, _ := ioutil.ReadAll(body.File)
 		body.File.Seek(0, 0)
 		return bytes
 	}
-	return []byte("No body configured.")
+	return nil
 }
 
 // Info returns some basic info on the body.
@@ -70,17 +68,15 @@ func (body *Body) Info() []byte {
 			return nil
 		}
 
-		stats, err := body.File.Stat()
-		if err != nil {
-			return []byte(fmt.Sprintf("File could not be read: %s \n", body.File.Name()))
-		}
+		// XXX: Handle this error
+		stats, _ := body.File.Stat()
 		w := &bytes.Buffer{}
 		fmt.Fprintf(w, "file: %s\n", body.File.Name())
 		fmt.Fprintf(w, "size: %d bytes\n", stats.Size())
 		fmt.Fprintf(w, "perm: %s\n", stats.Mode())
 		return w.Bytes()
 	}
-	return []byte("No body configured.")
+	return nil
 }
 
 // SetFile set a new source file for the body, if it exists.
@@ -180,7 +176,7 @@ func NewResponse(status, headers, body string) (*Response, error) {
 	}
 	code, err := strconv.Atoi(status)
 	if err != nil {
-		return nil, fmt.Errorf("Could not interpret status: %v", err)
+		return nil, fmt.Errorf("Status: %v", err)
 	}
 
 	if code < 100 || code > 599 {
