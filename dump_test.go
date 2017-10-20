@@ -33,7 +33,7 @@ func TestDumpRequestWithJSON(t *testing.T) {
 
 		buf, err := DumpRequest(req)
 		require.NoError(t, err)
-		t.Logf("%s\n", buf)
+		fmt.Printf("%s\n", buf)
 	})
 
 	t.Run("Gzip", func(t *testing.T) {
@@ -48,7 +48,7 @@ func TestDumpRequestWithJSON(t *testing.T) {
 		buf, err := DumpRequest(req)
 		require.NoError(t, err)
 		require.True(t, strings.Contains(string(buf), `"foo": "bar"`))
-		t.Logf("%s\n", buf)
+		fmt.Printf("%s\n", buf)
 	})
 
 	t.Run("Invalid Gzip", func(t *testing.T) {
@@ -59,7 +59,7 @@ func TestDumpRequestWithJSON(t *testing.T) {
 
 		buf, err := DumpRequest(req)
 		require.Error(t, err)
-		t.Logf("%s\n", buf)
+		fmt.Printf("%s\n", buf)
 	})
 }
 
