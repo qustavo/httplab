@@ -5,13 +5,12 @@ import (
 	"compress/gzip"
 	"fmt"
 	"net/http"
-	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"strings"
 	"sort"
+	"strings"
 )
 
 func TestDumpRequestWithJSON(t *testing.T) {
@@ -78,7 +77,7 @@ func TestDumpRequestHeaders(t *testing.T) {
 		sort.Strings(keys)
 
 		startLine := "GET / HTTP/1.1\n"
-		response :=  startLine + strings.Join(keys, ": \n") + ": \n"
+		response := startLine + strings.Join(keys, ": \n") + ": \n"
 
 		assert.Contains(t, response, string(Decolorize(buf)))
 	})
