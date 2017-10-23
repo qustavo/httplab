@@ -4,6 +4,7 @@
 * Display request headers in a sorted way on the client (@waleoyediran, issue #47)
 * [bugfix] Location header not rendered to client (@vjeantet, issue #44)
 * CORS support via `-cors` (issue #39)
+* Add graceful shutdown (@maciekmm, issue #66)
 
 ## v0.3.0
 * Enable Line Wrapping (issue #38)
