@@ -1,0 +1,7 @@
+builds:
+  - binary: httplab
+  - main: cmd/httplab/main.go
+    goos:
+      - linux
+    goarch:
+      - amd64
