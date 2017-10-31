@@ -2,6 +2,11 @@ builds:
   - binary: httplab
   - main: cmd/httplab/main.go
     goos:
+      - windows
+      - darwin
       - linux
-    goarch:
-      - amd64
+archive:
+  wrap_in_directory: true
+  format_overrides:
+    - goos: windows
+      format: zip
