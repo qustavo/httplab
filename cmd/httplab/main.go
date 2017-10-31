@@ -15,7 +15,7 @@ import (
 	flag "github.com/spf13/pflag"
 )
 
-const VERSION = "v0.4.0-dev"
+const VERSION = "v0.4.0"
 
 func NewHandler(ui *ui.UI, g *gocui.Gui) http.Handler {
 	fn := func(w http.ResponseWriter, req *http.Request) {
