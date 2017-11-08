@@ -1,3 +1,6 @@
+## v0.5.0-dev
+* Add response auto-update support
+
 ## v0.4.0
 * Display CORS request by default (issue #42)
 * Add short flags support (@dnguy078, issue #49)

@@ -79,6 +79,9 @@ type UI struct {
 	reqLock        sync.Mutex
 	requests       [][]byte
 	currentRequest int
+
+	AutoUpdate bool
+	hasChanged bool
 }
 
 func New(configPath string) *UI {
@@ -413,10 +416,12 @@ func (ui *UI) currentResponse(g *gocui.Gui) (*httplab.Response, error) {
 func (ui *UI) updateResponse(g *gocui.Gui) error {
 	resp, err := ui.currentResponse(g)
 	if err != nil {
+		ui.Info(g, err.Error())
 		return err
 	}
 
 	ui.resp = resp
+	ui.Info(g, "Response updated!")
 	return nil
 }
 
@@ -453,8 +458,16 @@ func (ui *UI) setView(g *gocui.Gui, view string) error {
 	x, y := cur.Cursor()
 	ui.cursors.Set(cur.Name(), x, y)
 
-	_, err := g.SetCurrentView(view)
-	return err
+	if _, err := g.SetCurrentView(view); err != nil {
+		return err
+	}
+
+	if ui.AutoUpdate && ui.hasChanged {
+		ui.hasChanged = false
+		return ui.updateResponse(g)
+	}
+
+	return nil
 }
 
 func (ui *UI) createPopupView(g *gocui.Gui, viewname string, w, h int) (*gocui.View, error) {

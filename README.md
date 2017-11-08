@@ -33,6 +33,7 @@ Each release provides pre-built binaries for different architectures, you can do
 ## Help
 ```
 Usage of httplab:
+  -a, --auto-update     Auto-updates response when fields change. (default true)
   -c, --config string   Specifies custom config path.
       --cors            Enable CORS.
       --cors-display    Display CORS requests (default true)

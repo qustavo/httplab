@@ -85,12 +85,7 @@ func onNextView(ui *UI) ActionFn {
 
 func onUpdateResponse(ui *UI) ActionFn {
 	return func(g *gocui.Gui, v *gocui.View) error {
-		if err := ui.updateResponse(g); err != nil {
-			ui.Info(g, err.Error())
-		} else {
-			ui.Info(g, "Response updated!")
-		}
-		return nil
+		return ui.updateResponse(g)
 	}
 }
 

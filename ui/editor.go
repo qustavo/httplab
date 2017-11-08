@@ -35,6 +35,11 @@ func (e *editor) Edit(v *gocui.View, key gocui.Key, ch rune, mod gocui.Modifier)
 		}
 	}
 
+	// update hasChange status only when user has updated any response component
+	if v.Name() != "request" {
+		e.ui.hasChanged = true
+	}
+
 	// prevent infinite scrolling
 	if (key == gocui.KeyArrowDown || key == gocui.KeyArrowRight) && mod == gocui.ModNone {
 		_, cy := v.Cursor()

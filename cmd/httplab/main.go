@@ -15,7 +15,7 @@ import (
 	flag "github.com/spf13/pflag"
 )
 
-const VERSION = "v0.4.0"
+const VERSION = "v0.5.0-dev"
 
 func NewHandler(ui *ui.UI, g *gocui.Gui) http.Handler {
 	fn := func(w http.ResponseWriter, req *http.Request) {
@@ -57,26 +57,30 @@ func Version() {
 	os.Exit(0)
 }
 
+type cmdArgs struct {
+	autoUpdate  bool
+	config      string
+	corsEnabled bool
+	corsDisplay bool
+	port        int
+	version     bool
+}
+
 func main() {
-	var (
-		port        int
-		config      string
-		version     bool
-		corsEnabled bool
-		corsDisplay bool
-	)
+	var args cmdArgs
 
 	flag.Usage = usage
 
-	flag.IntVarP(&port, "port", "p", 10080, "Specifies the port where HTTPLab will bind to.")
-	flag.StringVarP(&config, "config", "c", "", "Specifies custom config path.")
-	flag.BoolVarP(&version, "version", "v", false, "Prints current version.")
-	flag.BoolVar(&corsEnabled, "cors", false, "Enable CORS.")
-	flag.BoolVar(&corsDisplay, "cors-display", true, "Display CORS requests")
+	flag.BoolVarP(&args.autoUpdate, "auto-update", "a", true, "Auto-updates response when fields change.")
+	flag.StringVarP(&args.config, "config", "c", "", "Specifies custom config path.")
+	flag.BoolVar(&args.corsEnabled, "cors", false, "Enable CORS.")
+	flag.BoolVar(&args.corsDisplay, "cors-display", true, "Display CORS requests")
+	flag.IntVarP(&args.port, "port", "p", 10080, "Specifies the port where HTTPLab will bind to.")
+	flag.BoolVarP(&args.version, "version", "v", false, "Prints current version.")
 
 	flag.Parse()
 
-	if version {
+	if args.version {
 		Version()
 	}
 
@@ -85,13 +89,13 @@ func main() {
 		return next
 	}
 
-	if corsEnabled {
+	if args.corsEnabled {
 		middleware = cors.New(cors.Options{
-			OptionsPassthrough: corsDisplay,
+			OptionsPassthrough: args.corsDisplay,
 		}).Handler
 	}
 
-	if srv, err := run(config, port, middleware); err != nil {
+	if srv, err := run(args, middleware); err != nil {
 		if err == gocui.ErrQuit {
 			log.Println("HTTPLab is shutting down")
 			srv.Shutdown(context.Background())
@@ -101,25 +105,27 @@ func main() {
 	}
 }
 
-func run(config string, port int, middleware func(next http.Handler) http.Handler) (*http.Server, error) {
+func run(args cmdArgs, middleware func(next http.Handler) http.Handler) (*http.Server, error) {
 	g, err := gocui.NewGui(gocui.Output256)
 	if err != nil {
-		log.Fatalln(err)
+		return nil, err
 	}
 	defer g.Close()
 
-	if config == "" {
-		config = defaultConfigPath()
+	if args.config == "" {
+		args.config = defaultConfigPath()
 	}
 
-	ui := ui.New(config)
+	ui := ui.New(args.config)
+	ui.AutoUpdate = args.autoUpdate
+
 	errCh, err := ui.Init(g)
 	if err != nil {
 		return nil, err
 	}
 
 	srv := &http.Server{
-		Addr:    fmt.Sprintf(":%d", port),
+		Addr:    fmt.Sprintf(":%d", args.port),
 		Handler: http.Handler(middleware(NewHandler(ui, g))),
 	}
 
@@ -130,7 +136,7 @@ func run(config string, port int, middleware func(next http.Handler) http.Handle
 		if err := srv.ListenAndServe(); err != nil {
 			errCh <- err
 		} else {
-			ui.Info(g, "Listening on :%d", port)
+			ui.Info(g, "Listening on :%d", args.port)
 		}
 	}()
 
