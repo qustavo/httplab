@@ -1,4 +1,5 @@
 ## v0.5.0-dev
+* Configure response with flags
 * Add response auto-update support
 
 ## v0.4.0

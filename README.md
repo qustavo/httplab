@@ -33,12 +33,16 @@ Each release provides pre-built binaries for different architectures, you can do
 ## Help
 ```
 Usage of httplab:
-  -a, --auto-update     Auto-updates response when fields change. (default true)
-  -c, --config string   Specifies custom config path.
-      --cors            Enable CORS.
-      --cors-display    Display CORS requests (default true)
-  -p, --port int        Specifies the port where HTTPLab will bind to. (default 10080)
-  -v, --version         Prints current version.
+  -a, --auto-update       Auto-updates response when fields change. (default true)
+  -b, --body string       Specifies the inital response body. (default "Hello, World")
+  -c, --config string     Specifies custom config path.
+      --cors              Enable CORS.
+      --cors-display      Display CORS requests. (default true)
+  -d, --delay int         Specifies the initial response delay in ms.
+  -H, --headers strings   Specifies the initial response headers. (default [X-Server:HTTPLab])
+  -p, --port int          Specifies the port where HTTPLab will bind to. (default 10080)
+  -s, --status string     Specifies the initial response status. (default "200")
+  -v, --version           Prints current version.
 ```
 
 ### Key Bindings

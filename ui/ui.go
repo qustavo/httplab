@@ -84,18 +84,9 @@ type UI struct {
 	hasChanged bool
 }
 
-func New(configPath string) *UI {
+func New(resp *httplab.Response, configPath string) *UI {
 	return &UI{
-		resp: &httplab.Response{
-			Status: 200,
-			Headers: http.Header{
-				"X-Server": []string{"HTTPLab"},
-			},
-			Body: httplab.Body{
-				Mode:  httplab.BodyInput,
-				Input: []byte("Hello, World"),
-			},
-		},
+		resp:       resp,
 		responses:  httplab.NewResponsesList(),
 		configPath: configPath,
 		cursors:    NewCursors(),

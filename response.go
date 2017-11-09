@@ -204,6 +204,7 @@ func NewResponse(status, headers, body string) (*Response, error) {
 		Status:  code,
 		Headers: hdr,
 		Body: Body{
+			Mode:  BodyInput,
 			Input: []byte(body),
 		},
 	}, nil
