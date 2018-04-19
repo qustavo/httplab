@@ -21,7 +21,7 @@ go install github.com/gchaincl/httplab/cmd/httplab
 yaourt httplab
 ```
 
-### Snap
+### ~Snap~ [FIXME](https://github.com/gchaincl/httplab/issues/78)
 On [systems](https://snapcraft.io/docs/core/install) where snap is supported:
 ```
 snap install httplab
