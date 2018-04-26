@@ -13,6 +13,7 @@ import (
 
 var decolorizeRegex = regexp.MustCompile("\x1b\\[0;\\d+m")
 
+// Decolorize remove the color escape sequences from a []byte encoded string
 func Decolorize(s []byte) []byte {
 	return decolorizeRegex.ReplaceAll(s, nil)
 }
@@ -48,6 +49,7 @@ func writeBody(buf *bytes.Buffer, req *http.Request) error {
 	return err
 }
 
+// DumpRequest pretty prints an http.Request
 func DumpRequest(req *http.Request) ([]byte, error) {
 	buf := bytes.NewBuffer(nil)
 

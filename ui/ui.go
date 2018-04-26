@@ -15,25 +15,36 @@ import (
 )
 
 const (
-	STATUS_VIEW      = "status"
-	DELAY_VIEW       = "delay"
-	HEADERS_VIEW     = "headers"
-	BODY_VIEW        = "body"
-	REQUEST_VIEW     = "request"
-	INFO_VIEW        = "info"
-	BODYFILE_VIEW    = "bodyfile"
-	SAVE_VIEW        = "save"
-	RESPONSES_VIEW   = "responses"
-	BINDINGS_VIEW    = "bindings"
-	FILE_DIALOG_VIEW = "file-dialog"
+	// StatusView widget sets the response staus code
+	StatusView = "status"
+	// DelayView widget sets the response delay time
+	DelayView = "delay"
+	// HeaderView widget sets the response headers
+	HeaderView = "headers"
+	// BodyView widget sets the response body content
+	BodyView = "body"
+	// BodyFileView widget shows the file content to be set on the response body
+	BodyFileView = "bodyfile"
+	// RequestView widget displays the request
+	RequestView = "request"
+	// InfoView widget displays the bottom info bar
+	InfoView = "info"
+	// SaveView widget displays the saving location
+	SaveView = "save"
+	// ResponsesView widget displays the saved responses
+	ResponsesView = "responses"
+	// BindingsView widget displays binding help
+	BindingsView = "bindings"
+	// FileDialogView widget displays the popup to choose the response body file
+	FileDialogView = "file-dialog"
 )
 
 var cicleable = []string{
-	STATUS_VIEW,
-	DELAY_VIEW,
-	HEADERS_VIEW,
-	BODY_VIEW,
-	REQUEST_VIEW,
+	StatusView,
+	DelayView,
+	HeaderView,
+	BodyView,
+	RequestView,
 }
 
 func max(a, b int) int {
@@ -44,17 +55,20 @@ func max(a, b int) int {
 }
 
 // Cursors stores the cursor position for a specific view
-// this is used to restore mouse position when click is detected
+// this is used to restore mouse position when click is detected.
 type Cursors map[string]struct{ x, y int }
 
+// NewCursors returns a new Cursor.
 func NewCursors() Cursors {
 	return make(Cursors)
 }
 
+// Restore restores the cursor position.
 func (c Cursors) Restore(view *gocui.View) error {
 	return view.SetCursor(c.Get(view.Name()))
 }
 
+// Get gets the cursor position.
 func (c Cursors) Get(view string) (int, int) {
 	if v, ok := c[view]; ok {
 		return v.x, v.y
@@ -62,10 +76,12 @@ func (c Cursors) Get(view string) (int, int) {
 	return 0, 0
 }
 
+// Set sets the cursor position.
 func (c Cursors) Set(view string, x, y int) {
 	c[view] = struct{ x, y int }{x, y}
 }
 
+// UI represent the state of the ui.
 type UI struct {
 	resp                *httplab.Response
 	responses           *httplab.ResponsesList
@@ -84,6 +100,7 @@ type UI struct {
 	hasChanged bool
 }
 
+// New returns a new UI with default values specified on the Response.
 func New(resp *httplab.Response, configPath string) *UI {
 	return &UI{
 		resp:       resp,
@@ -93,6 +110,7 @@ func New(resp *httplab.Response, configPath string) *UI {
 	}
 }
 
+// Init initializes the UI.
 func (ui *UI) Init(g *gocui.Gui) (chan<- error, error) {
 	g.Cursor = true
 	g.Highlight = true
@@ -143,6 +161,7 @@ func (ui *UI) Init(g *gocui.Gui) (chan<- error, error) {
 	return errCh, nil
 }
 
+// AddRequest adds a new request to the UI.
 func (ui *UI) AddRequest(g *gocui.Gui, req *http.Request) error {
 	ui.reqLock.Lock()
 	defer ui.reqLock.Unlock()
@@ -164,13 +183,13 @@ func (ui *UI) AddRequest(g *gocui.Gui, req *http.Request) error {
 func (ui *UI) updateRequest(g *gocui.Gui) error {
 	req := ui.requests[ui.currentRequest]
 
-	view, err := g.View(REQUEST_VIEW)
+	view, err := g.View(RequestView)
 	if err != nil {
 		return err
 	}
 
 	view.Title = fmt.Sprintf("Request (%d/%d)", ui.currentRequest+1, len(ui.requests))
-	return ui.Display(g, REQUEST_VIEW, req)
+	return ui.Display(g, RequestView, req)
 }
 
 func (ui *UI) resetRequests(g *gocui.Gui) error {
@@ -179,7 +198,7 @@ func (ui *UI) resetRequests(g *gocui.Gui) error {
 	ui.requests = nil
 	ui.currentRequest = 0
 
-	v, err := g.View(REQUEST_VIEW)
+	v, err := g.View(RequestView)
 	if err != nil {
 		return err
 	}
@@ -190,6 +209,7 @@ func (ui *UI) resetRequests(g *gocui.Gui) error {
 	return nil
 }
 
+// Layout sets the layout
 func (ui *UI) Layout(g *gocui.Gui) error {
 	maxX, maxY := g.Size()
 
@@ -201,7 +221,7 @@ func (ui *UI) Layout(g *gocui.Gui) error {
 	}
 	splitY = NewSplit(maxY).Fixed(maxY - 2)
 
-	if v, err := g.SetView(REQUEST_VIEW, 0, 0, splitX.Next(), splitY.Next()); err != nil {
+	if v, err := g.SetView(RequestView, 0, 0, splitX.Next(), splitY.Next()); err != nil {
 		if err != gocui.ErrUnknownView {
 			return err
 		}
@@ -214,7 +234,7 @@ func (ui *UI) Layout(g *gocui.Gui) error {
 		return err
 	}
 
-	if v, err := g.SetView(INFO_VIEW, -1, splitY.Current(), maxX-1, maxY); err != nil {
+	if v, err := g.SetView(InfoView, -1, splitY.Current(), maxX-1, maxY); err != nil {
 		if err != gocui.ErrUnknownView {
 			return err
 		}
@@ -222,7 +242,7 @@ func (ui *UI) Layout(g *gocui.Gui) error {
 	}
 
 	if v := g.CurrentView(); v == nil {
-		_, err := g.SetCurrentView(STATUS_VIEW)
+		_, err := g.SetCurrentView(StatusView)
 		if err != gocui.ErrUnknownView {
 			return err
 		}
@@ -233,15 +253,15 @@ func (ui *UI) Layout(g *gocui.Gui) error {
 
 func (ui *UI) setResponseView(g *gocui.Gui, x0, y0, x1, y1 int) error {
 	if ui.hideResponseBuilder {
-		g.DeleteView(STATUS_VIEW)
-		g.DeleteView(DELAY_VIEW)
-		g.DeleteView(HEADERS_VIEW)
-		g.DeleteView(BODY_VIEW)
+		g.DeleteView(StatusView)
+		g.DeleteView(DelayView)
+		g.DeleteView(HeaderView)
+		g.DeleteView(BodyView)
 		return nil
 	}
 
 	split := NewSplit(y1).Fixed(2, 2).Relative(40)
-	if v, err := g.SetView(STATUS_VIEW, x0, y0, x1, split.Next()); err != nil {
+	if v, err := g.SetView(StatusView, x0, y0, x1, split.Next()); err != nil {
 		if err != gocui.ErrUnknownView {
 			return err
 		}
@@ -252,7 +272,7 @@ func (ui *UI) setResponseView(g *gocui.Gui, x0, y0, x1, y1 int) error {
 		fmt.Fprintf(v, "%d", ui.resp.Status)
 	}
 
-	if v, err := g.SetView(DELAY_VIEW, x0, split.Current(), x1, split.Next()); err != nil {
+	if v, err := g.SetView(DelayView, x0, split.Current(), x1, split.Next()); err != nil {
 		if err != gocui.ErrUnknownView {
 			return err
 		}
@@ -263,7 +283,7 @@ func (ui *UI) setResponseView(g *gocui.Gui, x0, y0, x1, y1 int) error {
 		fmt.Fprintf(v, "%d", ui.resp.Delay/time.Millisecond)
 	}
 
-	if v, err := g.SetView(HEADERS_VIEW, x0, split.Current(), x1, split.Next()); err != nil {
+	if v, err := g.SetView(HeaderView, x0, split.Current(), x1, split.Next()); err != nil {
 		if err != gocui.ErrUnknownView {
 			return err
 		}
@@ -277,7 +297,7 @@ func (ui *UI) setResponseView(g *gocui.Gui, x0, y0, x1, y1 int) error {
 		fmt.Fprint(v, strings.Join(headers, "\n"))
 	}
 
-	if v, err := g.SetView(BODY_VIEW, x0, split.Current(), x1, y1); err != nil {
+	if v, err := g.SetView(BodyView, x0, split.Current(), x1, y1); err != nil {
 		if err != gocui.ErrUnknownView {
 			return err
 		}
@@ -289,8 +309,9 @@ func (ui *UI) setResponseView(g *gocui.Gui, x0, y0, x1, y1 int) error {
 	return nil
 }
 
+// Info prints information on the InfoView.
 func (ui *UI) Info(g *gocui.Gui, format string, args ...interface{}) {
-	v, err := g.View(INFO_VIEW)
+	v, err := g.View(InfoView)
 	if v == nil || err != nil {
 		return
 	}
@@ -312,6 +333,7 @@ func (ui *UI) Info(g *gocui.Gui, format string, args ...interface{}) {
 	})
 }
 
+// Display displays arbitraty info into a given view.
 func (ui *UI) Display(g *gocui.Gui, view string, bytes []byte) error {
 	v, err := g.View(view)
 	if err != nil {
@@ -327,6 +349,7 @@ func (ui *UI) Display(g *gocui.Gui, view string, bytes []byte) error {
 	return nil
 }
 
+// Response returns the current response setting.
 func (ui *UI) Response() *httplab.Response {
 	return ui.resp
 }
@@ -380,8 +403,8 @@ func getViewBuffer(g *gocui.Gui, view string) string {
 }
 
 func (ui *UI) currentResponse(g *gocui.Gui) (*httplab.Response, error) {
-	status := getViewBuffer(g, STATUS_VIEW)
-	headers := getViewBuffer(g, HEADERS_VIEW)
+	status := getViewBuffer(g, StatusView)
+	headers := getViewBuffer(g, HeaderView)
 
 	resp, err := httplab.NewResponse(status, headers, "")
 	if err != nil {
@@ -390,10 +413,10 @@ func (ui *UI) currentResponse(g *gocui.Gui) (*httplab.Response, error) {
 
 	resp.Body = ui.resp.Body
 	if ui.Response().Body.Mode == httplab.BodyInput {
-		resp.Body.Input = []byte(getViewBuffer(g, BODY_VIEW))
+		resp.Body.Input = []byte(getViewBuffer(g, BodyView))
 	}
 
-	delay := getViewBuffer(g, DELAY_VIEW)
+	delay := getViewBuffer(g, DelayView)
 	delay = strings.Trim(delay, " \n")
 	intDelay, err := strconv.Atoi(delay)
 	if err != nil {
@@ -420,15 +443,15 @@ func (ui *UI) restoreResponse(g *gocui.Gui, r *httplab.Response) {
 	ui.resp = r
 
 	var v *gocui.View
-	v, _ = g.View(STATUS_VIEW)
+	v, _ = g.View(StatusView)
 	v.Clear()
 	fmt.Fprintf(v, "%d", r.Status)
 
-	v, _ = g.View(DELAY_VIEW)
+	v, _ = g.View(DelayView)
 	v.Clear()
 	fmt.Fprintf(v, "%d", r.Delay)
 
-	v, _ = g.View(HEADERS_VIEW)
+	v, _ = g.View(HeaderView)
 	v.Clear()
 	for key := range r.Headers {
 		fmt.Fprintf(v, "%s: %s", key, r.Headers.Get(key))
@@ -504,11 +527,11 @@ func (ui *UI) openPopup(g *gocui.Gui, viewname string, x, y int) (*gocui.View, e
 }
 
 func (ui *UI) toggleHelp(g *gocui.Gui, help string) error {
-	if ui.currentPopup == BINDINGS_VIEW {
-		return ui.closePopup(g, BINDINGS_VIEW)
+	if ui.currentPopup == BindingsView {
+		return ui.closePopup(g, BindingsView)
 	}
 
-	view, err := ui.openPopup(g, BINDINGS_VIEW, 40, strings.Count(help, "\n"))
+	view, err := ui.openPopup(g, BindingsView, 40, strings.Count(help, "\n"))
 	if err != nil {
 		return err
 	}
@@ -520,8 +543,8 @@ func (ui *UI) toggleHelp(g *gocui.Gui, help string) error {
 }
 
 func (ui *UI) toggleResponsesLoader(g *gocui.Gui) error {
-	if ui.currentPopup == RESPONSES_VIEW {
-		return ui.closePopup(g, RESPONSES_VIEW)
+	if ui.currentPopup == ResponsesView {
+		return ui.closePopup(g, ResponsesView)
 	}
 
 	if err := ui.responses.Load(ui.configPath); err != nil {
@@ -532,7 +555,7 @@ func (ui *UI) toggleResponsesLoader(g *gocui.Gui) error {
 		return errors.New("No responses has been saved")
 	}
 
-	popup, err := ui.openPopup(g, RESPONSES_VIEW, 30, ui.responses.Len()+1)
+	popup, err := ui.openPopup(g, ResponsesView, 30, ui.responses.Len()+1)
 	if err != nil {
 		return err
 	}
@@ -557,7 +580,7 @@ func (ui *UI) toggleResponsesLoader(g *gocui.Gui) error {
 			return err
 		}
 
-		if err := ui.closePopup(g, RESPONSES_VIEW); err != nil {
+		if err := ui.closePopup(g, ResponsesView); err != nil {
 			return err
 		}
 
@@ -574,7 +597,7 @@ func (ui *UI) toggleResponsesLoader(g *gocui.Gui) error {
 	}
 
 	onQuit := func(g *gocui.Gui, v *gocui.View) error {
-		return ui.closePopup(g, RESPONSES_VIEW)
+		return ui.closePopup(g, ResponsesView)
 	}
 
 	view := []string{popup.Name()}
@@ -598,7 +621,7 @@ func (ui *UI) toggleResponsesLoader(g *gocui.Gui) error {
 func (ui *UI) toggleResponseBuilder(g *gocui.Gui) error {
 	ui.hideResponseBuilder = !ui.hideResponseBuilder
 	if ui.hideResponseBuilder {
-		_, err := g.SetCurrentView(REQUEST_VIEW)
+		_, err := g.SetCurrentView(RequestView)
 		return err
 	}
 	return nil
@@ -609,7 +632,7 @@ func (ui *UI) openSavePopup(g *gocui.Gui, title string, fn func(*gocui.Gui, stri
 		return err
 	}
 
-	popup, err := ui.openPopup(g, SAVE_VIEW, max(20, len(title)+3), 2)
+	popup, err := ui.openPopup(g, SaveView, max(20, len(title)+3), 2)
 	if err != nil {
 		return err
 	}
@@ -619,7 +642,7 @@ func (ui *UI) openSavePopup(g *gocui.Gui, title string, fn func(*gocui.Gui, stri
 		if err := fn(g, value); err != nil {
 			ui.Info(g, err.Error())
 		}
-		return ui.closePopup(g, SAVE_VIEW)
+		return ui.closePopup(g, SaveView)
 	}
 
 	if err := g.SetKeybinding(popup.Name(), gocui.KeyEnter, gocui.ModNone, onEnter); err != nil {
@@ -691,7 +714,7 @@ func (ui *UI) saveRequestAs(g *gocui.Gui, name string) error {
 }
 
 func (ui *UI) renderBody(g *gocui.Gui) error {
-	v, err := g.View(BODY_VIEW)
+	v, err := g.View(BodyView)
 	if err != nil {
 		return err
 	}
@@ -709,7 +732,7 @@ func (ui *UI) openBodyFilePopup(g *gocui.Gui) error {
 		return err
 	}
 
-	popup, err := ui.openPopup(g, FILE_DIALOG_VIEW, 20, 2)
+	popup, err := ui.openPopup(g, FileDialogView, 20, 2)
 	if err != nil {
 		return err
 	}
@@ -734,11 +757,7 @@ func (ui *UI) openBodyFilePopup(g *gocui.Gui) error {
 		return ui.closePopup(g, popup.Name())
 	}
 
-	if err := g.SetKeybinding(popup.Name(), gocui.KeyEnter, gocui.ModNone, onEnter); err != nil {
-		return err
-	}
-
-	return nil
+	return g.SetKeybinding(popup.Name(), gocui.KeyEnter, gocui.ModNone, onEnter)
 }
 
 func (ui *UI) nextBodyMode(g *gocui.Gui) error {
@@ -752,7 +771,7 @@ func (ui *UI) nextBodyMode(g *gocui.Gui) error {
 }
 
 func (ui *UI) toggleLineWrap(g *gocui.Gui) error {
-	view, err := g.View(REQUEST_VIEW)
+	view, err := g.View(RequestView)
 	if err != nil {
 		return err
 	}

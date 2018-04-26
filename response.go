@@ -29,7 +29,9 @@ func (m BodyMode) String() string {
 }
 
 const (
+	// BodyInput takes the body input from input box
 	BodyInput BodyMode = iota + 1
+	// BodyFile takes  the body input from a file
 	BodyFile
 )
 
@@ -356,7 +358,7 @@ func (rl *ResponsesList) Del(key string) bool {
 // ExpandPath expands a given path by replacing '~' with $HOME of the current user.
 func ExpandPath(path string) string {
 	if path[0] == '~' {
-		path = "$HOME" + path[1:len(path)]
+		path = "$HOME" + path[1:]
 	}
 	return os.ExpandEnv(path)
 }

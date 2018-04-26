@@ -6,10 +6,11 @@ import (
 	"net/http"
 	"testing"
 
+	"sort"
+	"strings"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"strings"
-	"sort"
 )
 
 func TestDumpRequestWithJSON(t *testing.T) {
@@ -50,14 +51,14 @@ func TestDumpRequestHeaders(t *testing.T) {
 		sort.Strings(keys)
 
 		startLine := "GET / HTTP/1.1\n"
-		response :=  startLine + strings.Join(keys, ": \n") + ": \n"
+		response := startLine + strings.Join(keys, ": \n") + ": \n"
 
 		assert.Contains(t, response, string(Decolorize(buf)))
 	})
 }
 
 func TestDecolorization(t *testing.T) {
-	for i, _ := range [107]struct{}{} {
+	for i := range [107]struct{}{} {
 		text := "Some Text"
 		nocolor := Decolorize([]byte(withColor(i, text)))
 		assert.Equal(t, text, string(nocolor))

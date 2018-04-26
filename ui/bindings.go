@@ -8,6 +8,7 @@ import (
 	"github.com/jroimartin/gocui"
 )
 
+// ActionFn is binded to a key combination
 type ActionFn func(*gocui.Gui, *gocui.View) error
 
 type binding struct {
@@ -59,6 +60,7 @@ func (bs bindings) Help() string {
 	return buf.String()
 }
 
+// Bindings are the list of binded key combinations
 var Bindings = &bindings{
 	{gocui.KeyTab, "Tab", "Next Input", nil, onNextView},
 	{0xFF, "Shift+Tab", "Previous Input", nil, nil}, // only to display on help

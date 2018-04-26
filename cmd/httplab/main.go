@@ -17,8 +17,10 @@ import (
 	flag "github.com/spf13/pflag"
 )
 
+// VERSION is the current version
 const VERSION = "v0.5.0-dev"
 
+// NewHandler returns a new http.Handler
 func NewHandler(ui *ui.UI, g *gocui.Gui) http.Handler {
 	fn := func(w http.ResponseWriter, req *http.Request) {
 		if err := ui.AddRequest(g, req); err != nil {
@@ -54,6 +56,7 @@ func usage() {
 	fmt.Fprintf(os.Stderr, "\nBindings:\n%s", ui.Bindings.Help())
 }
 
+// Version prints the version and exits
 func Version() {
 	fmt.Fprintf(os.Stdout, "%s\n", VERSION)
 	os.Exit(0)
@@ -78,7 +81,7 @@ func main() {
 	flag.Usage = usage
 
 	flag.BoolVarP(&args.autoUpdate, "auto-update", "a", true, "Auto-updates response when fields change.")
-	flag.StringVarP(&args.body, "body", "b", "Hello, World", "Specifies the inital response body.")
+	flag.StringVarP(&args.body, "body", "b", "Hello, World", "Specifies the initial response body.")
 	flag.StringVarP(&args.config, "config", "c", "", "Specifies custom config path.")
 	flag.BoolVar(&args.corsEnabled, "cors", false, "Enable CORS.")
 	flag.BoolVar(&args.corsDisplay, "cors-display", true, "Display CORS requests.")
