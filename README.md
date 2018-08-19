@@ -1,12 +1,15 @@
 ![HTTPLAB](https://github.com/gchaincl/httplab/blob/master/images/httplab_logo.png)
 
-[![Build Status](https://travis-ci.org/gchaincl/httplab.svg?branch=master)](https://travis-ci.org/gchaincl/httplab) [![Go Report Card](https://goreportcard.com/badge/github.com/gchaincl/httplab)](https://goreportcard.com/report/gchaincl/httplab) [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square)](http://makeapullrequest.com) 
+[![Build Status](https://travis-ci.org/gchaincl/httplab.svg?branch=master)](https://travis-ci.org/gchaincl/httplab) [![Go Report Card](https://goreportcard.com/badge/github.com/gchaincl/httplab)](https://goreportcard.com/report/gchaincl/httplab) [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square)](http://makeapullrequest.com)
 
----
+
 The interactive web server.
 
 HTTPLabs let you inspect HTTP requests and forge responses.
 
+<a href="https://www.buymeacoffee.com/gchaincl" target="_blank"><img src="https://www.buymeacoffee.com/assets/img/custom_images/white_img.png" alt="Buy Me A Coffee" style="height: auto !important;width: auto !important;" ></a>
+
+---
 ![screencast](images/screencast.gif)
 
 # Install
