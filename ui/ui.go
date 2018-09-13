@@ -657,10 +657,7 @@ func (ui *UI) openSavePopup(g *gocui.Gui, title string, fn func(*gocui.Gui, stri
 }
 
 func (ui *UI) saveResponsePopup(g *gocui.Gui) error {
-	fn := func(g *gocui.Gui, name string) error {
-		return ui.saveResponseAs(g, name)
-	}
-	return ui.openSavePopup(g, "Save Response as...", fn)
+	return ui.openSavePopup(g, "Save Response as...", ui.saveResponseAs)
 }
 
 func (ui *UI) saveResponseAs(g *gocui.Gui, name string) error {
@@ -685,11 +682,7 @@ func (ui *UI) saveRequestPopup(g *gocui.Gui) error {
 		return nil
 	}
 
-	fn := func(g *gocui.Gui, name string) error {
-		return ui.saveRequestAs(g, name)
-	}
-
-	return ui.openSavePopup(g, "Save Request as...", fn)
+	return ui.openSavePopup(g, "Save Request as...", ui.saveRequestAs)
 }
 
 func (ui *UI) saveRequestAs(g *gocui.Gui, name string) error {
