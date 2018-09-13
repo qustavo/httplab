@@ -141,7 +141,7 @@ func TestLoadFromJSON(t *testing.T) {
 	r := rl.Get("t1")
 	require.NotNil(t, r)
 	assert.Equal(t, 200, r.Status)
-	assert.Equal(t, time.Duration(1000), r.Delay)
+	assert.Equal(t, time.Microsecond, r.Delay)
 	assert.Equal(t, "value", r.Headers.Get("X-MyHeader"))
 
 	r.Body.Mode = BodyInput
