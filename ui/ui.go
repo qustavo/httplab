@@ -173,7 +173,7 @@ func (ui *UI) AddRequest(g *gocui.Gui, req *http.Request) error {
 	}
 
 	if ui.currentRequest == len(ui.requests)-1 {
-		ui.currentRequest = ui.currentRequest + 1
+		ui.currentRequest++
 	}
 
 	ui.requests = append(ui.requests, buf)
@@ -378,7 +378,8 @@ func (ui *UI) prevRequest(g *gocui.Gui) error {
 		return nil
 	}
 
-	ui.currentRequest = ui.currentRequest - 1
+	ui.currentRequest--
+
 	return ui.updateRequest(g)
 }
 
@@ -390,7 +391,7 @@ func (ui *UI) nextRequest(g *gocui.Gui) error {
 		return nil
 	}
 
-	ui.currentRequest = ui.currentRequest + 1
+	ui.currentRequest++
 	return ui.updateRequest(g)
 }
 
