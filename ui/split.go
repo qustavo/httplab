@@ -19,7 +19,7 @@ func NewSplit(size int) *Split {
 func (s *Split) Fixed(points ...int) *Split {
 	for _, point := range points {
 		s.points = append(s.points, point+(s.size-s.left))
-		s.left = s.left - point
+		s.left -= point
 	}
 
 	return s
@@ -41,7 +41,7 @@ func (s *Split) Next() int {
 		return 0
 	}
 
-	s.index = s.index + 1
+	s.index++
 	next := s.points[s.index]
 	return next
 }
