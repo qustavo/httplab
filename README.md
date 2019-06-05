@@ -7,8 +7,6 @@ The interactive web server.
 
 HTTPLabs let you inspect HTTP requests and forge responses.
 
-<a href="https://www.buymeacoffee.com/gchaincl" target="_blank"><img src="https://www.buymeacoffee.com/assets/img/custom_images/white_img.png" alt="Buy Me A Coffee" style="height: auto !important;width: auto !important;" ></a>
-
 ---
 ![screencast](images/screencast.gif)
 
