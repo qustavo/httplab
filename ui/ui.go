@@ -125,7 +125,7 @@ func (ui *UI) Init(g *gocui.Gui) (chan<- error, error) {
 	errCh := make(chan error)
 	go func() {
 		err := <-errCh
-		g.Execute(func(g *gocui.Gui) error {
+		g.Update(func(g *gocui.Gui) error {
 			return err
 		})
 	}()
@@ -316,7 +316,7 @@ func (ui *UI) Info(g *gocui.Gui, format string, args ...interface{}) {
 		return
 	}
 
-	g.Execute(func(g *gocui.Gui) error {
+	g.Update(func(g *gocui.Gui) error {
 		v.Clear()
 		_, err := fmt.Fprintf(v, format, args...)
 		return err
@@ -326,7 +326,7 @@ func (ui *UI) Info(g *gocui.Gui, format string, args ...interface{}) {
 		ui.infoTimer.Stop()
 	}
 	ui.infoTimer = time.AfterFunc(3*time.Second, func() {
-		g.Execute(func(g *gocui.Gui) error {
+		g.Update(func(g *gocui.Gui) error {
 			v.Clear()
 			return nil
 		})
@@ -340,7 +340,7 @@ func (ui *UI) Display(g *gocui.Gui, view string, bytes []byte) error {
 		return err
 	}
 
-	g.Execute(func(g *gocui.Gui) error {
+	g.Update(func(g *gocui.Gui) error {
 		v.Clear()
 		_, err := v.Write(bytes)
 		return err

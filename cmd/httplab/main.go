@@ -158,7 +158,7 @@ func run(args cmdArgs, middleware func(next http.Handler) http.Handler) (*http.S
 
 	go func() {
 		// Make sure gocui has started
-		g.Execute(func(g *gocui.Gui) error { return nil })
+		g.Update(func(g *gocui.Gui) error { return nil })
 
 		if err := srv.ListenAndServe(); err != nil {
 			errCh <- err
