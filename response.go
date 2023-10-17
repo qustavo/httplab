@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"os"
 	"sort"
@@ -53,7 +52,7 @@ func (body *Body) Payload() []byte {
 		}
 
 		// XXX: Handle this error
-		bytes, _ := ioutil.ReadAll(body.File)
+		bytes, _ := io.ReadAll(body.File)
 		body.File.Seek(0, 0)
 		return bytes
 	}
